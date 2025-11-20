@@ -1,0 +1,51 @@
+{
+    "compilerOptions": {
+        "allowJs": true,
+        "esModuleInterop": true,
+        "jsx": "react-native",
+        "lib": [
+            "dom",
+            "esnext"
+        ],
+        "module": "preserve",
+        "moduleDetection": "force",
+        "moduleResolution": "bundler",
+        "customConditions": [
+            "react-native"
+        ],
+        "noEmit": true,
+        "resolveJsonModule": true,
+        "skipLibCheck": true,
+        "target": "esnext",
+        "strict": true,
+        "allowSyntheticDefaultImports": true,
+        "resolvePackageJsonExports": true,
+        "resolvePackageJsonImports": true,
+        "useDefineForClassFields": true,
+        "noImplicitAny": true,
+        "noImplicitThis": true,
+        "strictNullChecks": true,
+        "strictFunctionTypes": true,
+        "strictBindCallApply": true,
+        "strictPropertyInitialization": true,
+        "strictBuiltinIteratorReturn": true,
+        "alwaysStrict": true,
+        "useUnknownInCatchVariables": true
+    },
+    "files": [
+        "./App.tsx",
+        "./index.ts",
+        "./src/@types/png.d.ts",
+        "./src/global/themes.tsx",
+        "./src/pages/login/index.tsx",
+        "./src/pages/login/styles.tsx"
+    ],
+    "exclude": [
+        "C:/Users/hellt/APP/despertar/node_modules",
+        "C:/Users/hellt/APP/despertar/babel.config.js",
+        "C:/Users/hellt/APP/despertar/metro.config.js",
+        "C:/Users/hellt/APP/despertar/jest.config.js",
+        "C:/Users/hellt/APP/despertar/android",
+        "C:/Users/hellt/APP/despertar/ios"
+    ]
+}
