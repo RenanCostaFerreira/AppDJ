@@ -38,15 +38,16 @@ export default function CourseDetail({ course, onBack, favorites = [], onToggleF
 
       <Image source={course.image} style={style.image} resizeMode="cover" />
       <View style={style.body}>
-        <Text style={style.title}>{course.title}</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+          <Text style={style.title}>{course.title}</Text>
+          <TouchableOpacity onPress={handleToggleFav} hitSlop={{ top: 8, left: 8, right: 8, bottom: 8 }}>
+            <Text style={{ fontSize: 22, color: isFav ? '#ff6810' : '#999' }}>{isFav ? '★' : '☆'}</Text>
+          </TouchableOpacity>
+        </View>
         <Text style={style.description}>{course.description}</Text>
 
         <TouchableOpacity style={style.enrollButton} onPress={handleEnroll}>
           <Text style={style.enrollText}>Matricular-se</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={[style.enrollButton, { marginTop: 12, backgroundColor: isFav ? '#ccc' : '#ff6810' }]} onPress={handleToggleFav}>
-          <Text style={style.enrollText}>{isFav ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}</Text>
         </TouchableOpacity>
       </View>
     </View>

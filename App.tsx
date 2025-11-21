@@ -4,8 +4,9 @@ import Login from './src/pages/login';
 import Register from './src/pages/register';
 import Courses from './src/pages/courses';
 import CourseDetail from './src/pages/courseDetail';
+import Favorites from './src/pages/favorites';
 
-type Page = 'login' | 'register' | 'courses' | 'courseDetail';
+type Page = 'login' | 'register' | 'courses' | 'courseDetail' | 'profile';
 type Course = {
   id: string;
   title: string;
@@ -77,11 +78,20 @@ export default function App() {
   }
 
   if (page === 'courses') {
-    return <Courses onBack={() => handleLogout()} onOpenCourse={goToCourseDetail} currentUser={currentUser} favorites={favorites} onToggleFavorite={handleToggleFavorite} onLogout={handleLogout} />
+  return <Courses onBack={() => handleLogout()} onOpenCourse={goToCourseDetail} onOpenFavorites={() => setPage('favorites')} onOpenProfile={() => setPage('profile')} currentUser={currentUser} favorites={favorites} onToggleFavorite={handleToggleFavorite} onLogout={handleLogout} />
   }
 
   if (page === 'courseDetail' && selectedCourse) {
     return <CourseDetail course={selectedCourse} onBack={() => setPage('courses')} onToggleFavorite={handleToggleFavorite} favorites={favorites} />
+  }
+
+  if (page === 'favorites') {
+    return <Favorites onBack={() => setPage('courses')} onOpenCourse={goToCourseDetail} favorites={favorites} onToggleFavorite={handleToggleFavorite} />
+  }
+
+  if (page === 'profile') {
+    const Profile = require('./src/pages/profile').default;
+    return <Profile user={currentUser} onBack={() => setPage('courses')} onLogout={handleLogout} />
   }
 
   return null;
