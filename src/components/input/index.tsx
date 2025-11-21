@@ -20,28 +20,13 @@ type Props = TextInputProps & {
     onIconRigthPress?: () => void,
 
 }
-export const Input = forwardRef((Props: Props, ref: LegacyRef<Textnput> | null) => {
+export const Input = forwardRef((Props: Props, ref: LegacyRef<TextInput> | null) => {
 
     const { IconLeft, IconRigth, IconLeftName, IconRigthName, title, onIconLeftPress, onIconRigthPress, ...rest } = Props;
 
-    const calculateSizeWidth = () => {
-        if(IconLeft && IconRigth){
-            return '83%';
-        }else if(IconLeft || IconRigth){
-            return '90%';
-        }else{
-            return '100%';
-        }
-    }
-
     const calculateSizePaddingLeft = () => {
-        if(IconLeft && IconRigth){
-            return 10;
-        }else if(IconLeft || IconRigth){
-            return 15;
-        } else {
-            return 20;
-        }
+        if(IconLeft) return 10;
+        return 20;
     }
 
     return (
@@ -54,9 +39,12 @@ export const Input = forwardRef((Props: Props, ref: LegacyRef<Textnput> | null) 
                     </TouchableOpacity>
                 )}
                 <TextInput
+                    ref={ref as any}
                     style={[
-                        style.input, {width: calculateSizeWidth()}
+                        style.input
                     ]}
+                    autoCapitalize="none"
+                    autoCorrect={false}
                     {...rest}
                 />
                 {IconRigth && IconRigthName &&(

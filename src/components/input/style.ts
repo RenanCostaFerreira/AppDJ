@@ -5,7 +5,7 @@ import { themes } from "../../global/themes";
 export const style = StyleSheet.create({
     BoxInput: {
         width: '100%',
-        height: 40,
+        height: 48,
         borderWidth: 1,
         borderRadius: 40,
         marginTop: 10,
@@ -18,20 +18,21 @@ export const style = StyleSheet.create({
     },
     input: {
         height: '100%',
-        width: '90%',
-        //backgroundColor: 'red',
+        flex: 1,
         borderRadius: 40,
-        paddingHorizontal: 5
+        paddingHorizontal: 12
     },
     titleInput: {
         marginLeft: 5,
         color: themes.colors.gray,
         marginTop: 28
     },
-    Icon:{
+    icon:{
         width: '100%'
     },
     Button:{
-        width: '10%'
+        width: 40,
+        alignItems: 'center',
+        justifyContent: 'center'
     },
 })

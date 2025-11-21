@@ -13,9 +13,15 @@ import { style } from './styles';
 import Logo from '../../assets/wrath.png';
 import { MaterialIcons, Octicons } from '@expo/vector-icons';
 import { themes } from '../../global/themes';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Input } from '../../components/input';
 import { Button } from '../../components/Button';
-export default function Login() {
+type Props = {
+    onNavigateToRegister?: () => void,
+    onAuthSuccess?: (user: {name:string,email:string}) => void
+}
+
+export default function Login({ onNavigateToRegister, onAuthSuccess }: Props) {
     const [email, setEmail] = React.useState('');
     const [password, setPassword] = React.useState('');
     const [showPassword, setShowPassword] = React.useState(true);
@@ -30,11 +36,25 @@ export default function Login() {
                 return Alert.alert('Atenção!', 'Por favor, preencha todos os campos.');
             }
 
-            setTimeout(() => {
-                if (email == 'ren.dark12@gmail.com' && password == '123456') {
-                    Alert.alert('Logado com sucesso!');
-                } else {
-                    Alert.alert('Usuario não encontrado!');
+            setTimeout(async () => {
+                try {
+                    // check stored users first
+                    const usersRaw = await AsyncStorage.getItem('users');
+                    const users = usersRaw ? JSON.parse(usersRaw) : [];
+                    const found = users.find((u: any) => u.email === email && u.password === password);
+                    if (found) {
+                        Alert.alert('Logado com sucesso!');
+                        if (onAuthSuccess) onAuthSuccess({name: found.name || 'Usuário', email});
+                    } else if (email == 'ren.dark12@gmail.com' && password == '123456') {
+                        // fallback hardcoded account
+                        Alert.alert('Logado com sucesso!');
+                        if (onAuthSuccess) onAuthSuccess({name: 'Renan', email});
+                    } else {
+                        Alert.alert('Usuario não encontrado!');
+                    }
+                } catch (err) {
+                    console.log('login check error', err);
+                    Alert.alert('Erro', 'Ocorreu um erro ao fazer login.');
                 }
                 setLoading(false)
             }, 3000)
@@ -85,7 +105,9 @@ export default function Login() {
                     onPress={getLogin}
                 />
             </View>
-            <Text style={style.textBottom}>Não tem conta? <Text style={{ color: themes.colors.primary }}>Crie agora!</Text></Text>
+            <Text style={style.textBottom}>Não tem conta? <Text style={{ color: themes.colors.primary }} onPress={onNavigateToRegister}>Crie agora!</Text></Text>
+
+            {/* Cursos só disponíveis após login */}
         </View>
     )
 }

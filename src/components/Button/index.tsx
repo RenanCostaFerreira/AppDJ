@@ -14,7 +14,7 @@ export function Button({...rest}:Props) {
         <TouchableOpacity 
             style={style.button} 
             {...rest}
-            ActiveOpacity={0.6}
+            activeOpacity={0.6}
         >
             {rest.loading?<ActivityIndicator /> : <Text style={style.textButton}>{rest.text}</Text>}
         </TouchableOpacity>
