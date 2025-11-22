@@ -3,7 +3,6 @@ import { View, Text, FlatList, TouchableOpacity, Image, Alert, TouchableWithoutF
 import { style } from './styles';
 import Logo from '../../assets/wrath.png';
 import { themes } from '../../global/themes';
-import { Color } from 'react-native/types_generated/Libraries/Animated/AnimatedExports';
 
 type Course = {
   id: string;
@@ -32,7 +31,7 @@ const sampleCourses: Course[] = [
   {id: '5', title: 'Assistente de Recusos Humanos', image: Logo, short: 'Boas práticas de UI/UX', description: 'Aprenda princípios de design para criar interfaces móveis bonitas e usáveis.' },
 ];
 
-export default function Courses({ onBack, onOpenCourse, onOpenFavorites, currentUser, favorites = [], onToggleFavorite, onLogout }: Props) {
+export default function Courses({ onBack, onOpenCourse, onOpenFavorites, onOpenProfile, currentUser, favorites = [], onToggleFavorite, onLogout }: Props) {
   const [menuVisible, setMenuVisible] = React.useState(false);
   const [favoritesVisible, setFavoritesVisible] = React.useState(false);
 
@@ -57,7 +56,7 @@ export default function Courses({ onBack, onOpenCourse, onOpenFavorites, current
           <View style={style.menuBar} />
         </TouchableOpacity>
 
-        <Text style={style.headerTitleSmall}>Location</Text>
+        <Text style={style.headerTitleSmall}></Text>
 
         <View style={{ width: 36 }} />
       </View>
@@ -155,17 +154,13 @@ export default function Courses({ onBack, onOpenCourse, onOpenFavorites, current
           <Image source={Logo} style={{ width: 20, height: 20 }} />
           <Text style={style.navText}>Discover</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={style.navItem}>
+        <TouchableOpacity style={style.navItem} onPress={() => { if (typeof onOpenFavorites === 'function') onOpenFavorites(); }}>
           <Image source={Logo} style={{ width: 20, height: 20 }} />
-          <Text style={style.navText}>Favourite</Text>
+          <Text style={style.navText}>Favoritos</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={style.navItem}>
+        <TouchableOpacity style={style.navItem} onPress={() => { if (typeof onOpenProfile === 'function') onOpenProfile(); }}>
           <Image source={Logo} style={{ width: 20, height: 20 }} />
-          <Text style={style.navText}>Chat</Text>
-        </TouchableOpacity>
-  <TouchableOpacity style={style.navItem} onPress={() => { if (typeof (onOpenProfile) === 'function') onOpenProfile(); }}>
-          <Image source={Logo} style={{ width: 20, height: 20 }} />
-          <Text style={style.navText}>Profile</Text>
+          <Text style={style.navText}>Meu Perfil</Text>
         </TouchableOpacity>
       </View>
     </View>

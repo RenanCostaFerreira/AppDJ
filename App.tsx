@@ -5,8 +5,9 @@ import Register from './src/pages/register';
 import Courses from './src/pages/courses';
 import CourseDetail from './src/pages/courseDetail';
 import Favorites from './src/pages/favorites';
+import Profile from './src/pages/profile';
 
-type Page = 'login' | 'register' | 'courses' | 'courseDetail' | 'profile';
+type Page = 'login' | 'register' | 'courses' | 'courseDetail' | 'profile' | 'favorites';
 type Course = {
   id: string;
   title: string;
@@ -90,7 +91,6 @@ export default function App() {
   }
 
   if (page === 'profile') {
-    const Profile = require('./src/pages/profile').default;
     return <Profile user={currentUser} onBack={() => setPage('courses')} onLogout={handleLogout} />
   }
 
