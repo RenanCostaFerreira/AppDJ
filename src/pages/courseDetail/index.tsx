@@ -8,6 +8,8 @@ type Course = {
   image: any;
   short: string;
   description: string;
+  duration: string;
+  activities: string[];
 }
 
 type Props = {
@@ -45,6 +47,11 @@ export default function CourseDetail({ course, onBack, favorites = [], onToggleF
           </TouchableOpacity>
         </View>
         <Text style={style.description}>{course.description}</Text>
+        <Text style={{ fontSize: 14, color: '#555', marginTop: 8 }}>Tempo de curso: {course.duration}</Text>
+        <Text style={{ fontSize: 14, color: '#555', marginTop: 8 }}>Atividades:</Text>
+        {course.activities && course.activities.map((act, idx) => (
+          <Text key={idx} style={{ fontSize: 13, color: '#777', marginLeft: 8 }}>• {act}</Text>
+        ))}
 
         <TouchableOpacity style={style.enrollButton} onPress={handleEnroll}>
           <Text style={style.enrollText}>Matricular-se</Text>

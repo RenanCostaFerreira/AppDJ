@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, FlatList, TouchableOpacity, Image, Alert, TouchableWithoutFeedback } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, Image, Alert, TouchableWithoutFeedback, TextInput } from 'react-native';
 import { style } from './styles';
 import Logo from '../../assets/wrath.png';
 import { themes } from '../../global/themes';
@@ -10,6 +10,8 @@ type Course = {
   image: any;
   short: string;
   description: string;
+  duration: string;
+  activities: string[];
 }
 
 type Props = {
@@ -24,16 +26,103 @@ type Props = {
 }
 
 const sampleCourses: Course[] = [
-  {id: '1', title: 'Assistente Administrativo', image: Logo, short: 'Introdução ao React Native', description: 'Aprenda os fundamentos do React Native para construir apps móveis.' },
-  {id: '2', title: 'Programação de Dispositivos Móveis', image: Logo, short: 'Use Expo para acelerar desenvolvimento', description: 'Aprenda a usar Expo, gerenciar ativos e publicar aplicativos.' },
-  {id: '3', title: 'Assistente de Recusos Humanos', image: Logo, short: 'Boas práticas de UI/UX', description: 'Aprenda princípios de design para criar interfaces móveis bonitas e usáveis.' },
-  {id: '4', title: 'Assistente de Recusos Humanos', image: Logo, short: 'Boas práticas de UI/UX', description: 'Aprenda princípios de design para criar interfaces móveis bonitas e usáveis.' },
-  {id: '5', title: 'Assistente de Recusos Humanos', image: Logo, short: 'Boas práticas de UI/UX', description: 'Aprenda princípios de design para criar interfaces móveis bonitas e usáveis.' },
+  {
+    id: '1',
+    title: 'Assistente Administrativo',
+    image: Logo,
+    short: 'Gestão e rotinas administrativas',
+    description: 'Aprenda os fundamentos da administração, organização de documentos, atendimento e suporte ao setor administrativo.',
+    duration: '3 meses',
+    activities: [
+      'Gestão de documentos',
+      'Atendimento ao público',
+      'Rotinas administrativas',
+      'Apoio na saúde mental',
+      'Inclusão para o mundo do trabalho'
+    ]
+  },
+  {
+    id: '2',
+    title: 'Programação de Dispositivos Móveis',
+    image: Logo,
+    short: 'Desenvolvimento de apps com React Native',
+    description: 'Aprenda a criar aplicativos móveis, usar Expo, gerenciar ativos e publicar aplicativos nas lojas.',
+    duration: '6 meses',
+    activities: [
+      'Desenvolvimento de trilhas formativas',
+      'Projetos práticos com React Native',
+      'Publicação de apps',
+      'Mentorias técnicas',
+      'Colaboração em equipe'
+    ]
+  },
+  {
+    id: '3',
+    title: 'Recursos Humanos e Liderança',
+    image: Logo,
+    short: 'Gestão de pessoas e liderança',
+    description: 'Desenvolva habilidades para atuar em RH, recrutamento, seleção, treinamento e liderança de equipes.',
+    duration: '4 meses',
+    activities: [
+      'Recrutamento e seleção',
+      'Treinamento de equipes',
+      'Gestão de conflitos',
+      'Mentorias de liderança',
+      'Apoio psicossocial'
+    ]
+  },
+  {
+    id: '4',
+    title: 'Design Gráfico e Criatividade',
+    image: Logo,
+    short: 'Criação visual e comunicação',
+    description: 'Aprenda princípios de design, ferramentas gráficas, criação de identidade visual e comunicação digital.',
+    duration: '5 meses',
+    activities: [
+      'Oficinas de design',
+      'Projetos de identidade visual',
+      'Comunicação digital',
+      'Colaboração criativa',
+      'Portfólio profissional'
+    ]
+  },
+  {
+    id: '5',
+    title: 'Empreendedorismo Social',
+    image: Logo,
+    short: 'Inovação e impacto social',
+    description: 'Desenvolva projetos de impacto social, aprenda sobre negócios sustentáveis e liderança comunitária.',
+    duration: '4 meses',
+    activities: [
+      'Criação de projetos sociais',
+      'Gestão sustentável',
+      'Liderança comunitária',
+      'Mentorias de impacto',
+      'Parcerias e networking'
+    ]
+  },
+  {
+    id: '6',
+    title: 'Tecnologia e Inovação',
+    image: Logo,
+    short: 'Ferramentas digitais e automação',
+    description: 'Explore ferramentas tecnológicas, automação de processos e inovação para o mercado de trabalho.',
+    duration: '3 meses',
+    activities: [
+      'Automação de processos',
+      'Uso de ferramentas digitais',
+      'Projetos de inovação',
+      'Oficinas práticas',
+      'Desenvolvimento de carreira'
+    ]
+  },
 ];
 
 export default function Courses({ onBack, onOpenCourse, onOpenFavorites, onOpenProfile, currentUser, favorites = [], onToggleFavorite, onLogout }: Props) {
   const [menuVisible, setMenuVisible] = React.useState(false);
   const [favoritesVisible, setFavoritesVisible] = React.useState(false);
+  const [search, setSearch] = React.useState('');
+  const [suggestions, setSuggestions] = React.useState<Course[]>([]);
 
   function handleLogout() {
     setMenuVisible(false);
@@ -56,13 +145,45 @@ export default function Courses({ onBack, onOpenCourse, onOpenFavorites, onOpenP
           <View style={style.menuBar} />
         </TouchableOpacity>
 
-        <Text style={style.headerTitleSmall}></Text>
+        <Text style={style.headerTitleSmall}>Associação Comunitária Despertar
+        </Text>
 
         <View style={{ width: 36 }} />
       </View>
 
       <View style={style.searchWrapper}>
-        <Text style={style.searchText}>Search</Text>
+        <TextInput
+          style={{borderWidth:1,borderColor:'#ccc',borderRadius:8,padding:8,width:'90%',backgroundColor:'#fff'}}
+          placeholder="Pesquisar cursos..."
+          value={search}
+          onChangeText={text => {
+            setSearch(text);
+            if (text.length > 0) {
+              const lower = text.toLowerCase();
+              setSuggestions(sampleCourses.filter(c =>
+                c.title.toLowerCase().includes(lower) ||
+                c.short.toLowerCase().includes(lower) ||
+                c.description.toLowerCase().includes(lower) ||
+                c.activities.some(a => a.toLowerCase().includes(lower))
+              ));
+            } else {
+              setSuggestions([]);
+            }
+          }}
+        />
+        {search.length > 0 && suggestions.length > 0 && (
+          <View style={{backgroundColor:'#fff',borderRadius:8,marginTop:4,padding:8,elevation:2}}>
+            <Text style={{fontWeight:'bold',marginBottom:4}}>Sugestões:</Text>
+            {suggestions.map(s => (
+              <TouchableOpacity key={s.id} onPress={() => { setSearch(''); setSuggestions([]); onOpenCourse(s); }} style={{paddingVertical:4}}>
+                <Text style={{color:themes.colors.primary}}>{s.title}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        )}
+        {search.length > 0 && suggestions.length === 0 && (
+          <Text style={{color:'red',marginTop:4}}>Nenhum curso encontrado.</Text>
+        )}
       </View>
 
       {/* Services row */}
@@ -126,7 +247,7 @@ export default function Courses({ onBack, onOpenCourse, onOpenFavorites, onOpenP
           const isFav = (favorites || []).includes(item.id);
           return (
             <TouchableOpacity style={style.card} onPress={() => onOpenCourse(item)}>
-              <Image source={item.image} style={style.cardImage} resizeMode="cover" />
+              <Image source={item.image} style={[style.cardImage, { width: 80, height: 80, alignSelf: 'center' }]} resizeMode="contain" />
               <View style={style.cardBody}>
                 <View style={style.cardHeader}>
                   <Text style={style.cardTitle}>{item.title}</Text>
@@ -154,11 +275,11 @@ export default function Courses({ onBack, onOpenCourse, onOpenFavorites, onOpenP
           <Image source={Logo} style={{ width: 20, height: 20 }} />
           <Text style={style.navText}>Discover</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={style.navItem} onPress={() => { if (typeof onOpenFavorites === 'function') onOpenFavorites(); }}>
+        <TouchableOpacity style={style.navItem} onPress={onOpenFavorites}>
           <Image source={Logo} style={{ width: 20, height: 20 }} />
           <Text style={style.navText}>Favoritos</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={style.navItem} onPress={() => { if (typeof onOpenProfile === 'function') onOpenProfile(); }}>
+        <TouchableOpacity style={style.navItem} onPress={() => onOpenProfile && onOpenProfile()}>
           <Image source={Logo} style={{ width: 20, height: 20 }} />
           <Text style={style.navText}>Meu Perfil</Text>
         </TouchableOpacity>

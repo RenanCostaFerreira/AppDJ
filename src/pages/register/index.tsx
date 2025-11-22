@@ -7,7 +7,7 @@ import { Button } from '../../components/Button';
 import { Octicons, MaterialIcons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { themes } from '../../global/themes';
-
+import { TouchableOpacity } from 'react-native-gesture-handler';
 type Props = {
     onNavigateToLogin?: () => void,
     onAuthSuccess?: (user: {name:string,email:string}) => void
@@ -20,19 +20,52 @@ export default function Register({ onNavigateToLogin, onAuthSuccess }: Props) {
     const [confirmPassword, setConfirmPassword] = React.useState('');
     const [showPassword, setShowPassword] = React.useState(true);
     const [loading, setLoading] = React.useState(false);
+    const [nameError, setNameError] = React.useState('');
+    const [passwordError, setPasswordError] = React.useState('');
 
     async function handleRegister() {
         try {
             setLoading(true);
 
+            setNameError('');
+            setPasswordError('');
             if (!name || !email || !password || !confirmPassword) {
                 setLoading(false);
-                return Alert.alert('Atenção!', 'Por favor, preencha todos os campos.');
+                Alert.alert('Atenção!', 'Por favor, preencha todos os campos.');
+                return;
+            }
+
+            if (name.length < 10) {
+                setLoading(false);
+                setNameError('Nome muito curto, mínimo 10 caracteres');
+                Alert.alert('Nome inválido!', 'Nome muito curto, mínimo 10 caracteres');
+                return;
+            }
+            if (name.length > 100) {
+                setLoading(false);
+                setNameError('Nome muito longo, máximo 100 caracteres');
+                Alert.alert('Nome inválido!', 'Nome muito longo, máximo 100 caracteres');
+                return;
+            }
+
+            if (password.length < 6) {
+                setLoading(false);
+                setPasswordError('Senha muito curta, mínimo 6 caracteres');
+                Alert.alert('Senha inválida!', 'Senha muito curta, mínimo 6 caracteres');
+                return;
+            }
+            if (password.length > 15) {
+                setLoading(false);
+                setPasswordError('Senha muito longa, máximo 15 caracteres');
+                Alert.alert('Senha inválida!', 'Senha muito longa, máximo 15 caracteres');
+                return;
             }
 
             if (password !== confirmPassword) {
                 setLoading(false);
-                return Alert.alert('Atenção!', 'As senhas não coincidem.');
+                setPasswordError('As senhas não coincidem');
+                Alert.alert('Atenção!', 'As senhas não coincidem.');
+                return;
             }
 
             // Simula chamada de API
@@ -80,6 +113,7 @@ export default function Register({ onNavigateToLogin, onAuthSuccess }: Props) {
                     onChangeText={setName}
                     title='Nome completo'
                 />
+                {nameError ? <Text style={{ color: 'red', marginBottom: 8 }}>{nameError}</Text> : null}
 
                 <Input
                     value={email}
@@ -98,15 +132,13 @@ export default function Register({ onNavigateToLogin, onAuthSuccess }: Props) {
                     secureTextEntry={showPassword}
                     onIconRigthPress={() => setShowPassword(!showPassword)}
                 />
-if (password == setConfirmPassword) {
-    
-}
                 <Input
                     value={confirmPassword}
                     onChangeText={setConfirmPassword}
                     title='Confirmar Senha'
                     secureTextEntry={showPassword}
                 />
+                {passwordError ? <Text style={{ color: 'red', marginBottom: 8 }}>{passwordError}</Text> : null}
             </View>
 
             <View style={style.BoxBotton}>

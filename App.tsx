@@ -1,4 +1,5 @@
 import React from 'react';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Login from './src/pages/login';
 import Register from './src/pages/register';
@@ -70,29 +71,26 @@ export default function App() {
     setPage('courses');
   }
 
-  if (page === 'login') {
-    return <Login onNavigateToRegister={() => setPage('register')} onAuthSuccess={handleAuthSuccess} />
-  }
-
-  if (page === 'register') {
-    return <Register onNavigateToLogin={() => setPage('login')} onAuthSuccess={handleAuthSuccess} />
-  }
-
-  if (page === 'courses') {
-  return <Courses onBack={() => handleLogout()} onOpenCourse={goToCourseDetail} onOpenFavorites={() => setPage('favorites')} onOpenProfile={() => setPage('profile')} currentUser={currentUser} favorites={favorites} onToggleFavorite={handleToggleFavorite} onLogout={handleLogout} />
-  }
-
-  if (page === 'courseDetail' && selectedCourse) {
-    return <CourseDetail course={selectedCourse} onBack={() => setPage('courses')} onToggleFavorite={handleToggleFavorite} favorites={favorites} />
-  }
-
-  if (page === 'favorites') {
-    return <Favorites onBack={() => setPage('courses')} onOpenCourse={goToCourseDetail} favorites={favorites} onToggleFavorite={handleToggleFavorite} />
-  }
-
-  if (page === 'profile') {
-    return <Profile user={currentUser} onBack={() => setPage('courses')} onLogout={handleLogout} />
-  }
-
-  return null;
+  return (
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      {page === 'login' && (
+        <Login onNavigateToRegister={() => setPage('register')} onAuthSuccess={handleAuthSuccess} />
+      )}
+      {page === 'register' && (
+        <Register onNavigateToLogin={() => setPage('login')} onAuthSuccess={handleAuthSuccess} />
+      )}
+      {page === 'courses' && (
+        <Courses onBack={() => handleLogout()} onOpenCourse={goToCourseDetail} onOpenFavorites={() => setPage('favorites')} onOpenProfile={() => setPage('profile')} currentUser={currentUser} favorites={favorites} onToggleFavorite={handleToggleFavorite} onLogout={handleLogout} />
+      )}
+      {page === 'courseDetail' && selectedCourse && (
+        <CourseDetail course={selectedCourse} onBack={() => setPage('courses')} onToggleFavorite={handleToggleFavorite} favorites={favorites} />
+      )}
+      {page === 'favorites' && (
+        <Favorites onBack={() => setPage('courses')} onOpenCourse={goToCourseDetail} favorites={favorites} onToggleFavorite={handleToggleFavorite} />
+      )}
+      {page === 'profile' && (
+        <Profile user={currentUser} onBack={() => setPage('courses')} onLogout={handleLogout} />
+      )}
+    </GestureHandlerRootView>
+  );
 }

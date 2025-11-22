@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, Image, Alert, Platform } from 'react-native';
+import { View, Text, TouchableOpacity, Image, Alert, Platform, TextInput } from 'react-native';
 import { style } from './styles';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as ImagePicker from 'expo-image-picker';
@@ -14,6 +14,11 @@ type Props = {
 
 export default function Profile({ user, onBack, onLogout }: Props) {
   const [imageUri, setImageUri] = React.useState<string | null>(null);
+  const [name, setName] = React.useState(user?.name ?? '');
+  const [pendingName, setPendingName] = React.useState(user?.name ?? '');
+  const [email] = React.useState(user?.email ?? '');
+  const [showPasswordPrompt, setShowPasswordPrompt] = React.useState(false);
+  const [password, setPassword] = React.useState('');
 
   React.useEffect(() => {
     (async () => {
@@ -57,9 +62,9 @@ export default function Profile({ user, onBack, onLogout }: Props) {
         // Try a fallback using DocumentPicker (some devices/Expo versions may behave better)
         try {
           const doc = await DocumentPicker.getDocumentAsync({ type: 'image/*', copyToCacheDirectory: true });
-          if (doc.type === 'success' && doc.uri) {
-            setImageUri(doc.uri);
-            await AsyncStorage.setItem(`profileImage:${user.email}`, doc.uri);
+          if (doc && doc.assets && doc.assets.length > 0 && doc.assets[0].uri) {
+            setImageUri(doc.assets[0].uri);
+            await AsyncStorage.setItem(`profileImage:${user.email}`, doc.assets[0].uri);
             return;
           }
         } catch (docErr) {
@@ -120,8 +125,8 @@ export default function Profile({ user, onBack, onLogout }: Props) {
         <TouchableOpacity style={style.back} onPress={onBack}>
           <Text style={{ color: themes.colors.primary }}>Voltar</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={style.logout} onPress={() => { if (onLogout) onLogout(); if (onBack) onBack(); }}>
-          <Text style={{ color: '#fff' }}>Logout</Text>
+        <TouchableOpacity style={style.logout} onPress={() => Alert.alert('Perfil salvo', 'Suas informações foram salvas com sucesso!')}>
+          <Text style={{ color: '#fff' }}>Salvar</Text>
         </TouchableOpacity>
       </View>
 
@@ -145,8 +150,60 @@ export default function Profile({ user, onBack, onLogout }: Props) {
         </TouchableOpacity>
       ) : null}
 
-      <Text style={style.title}>{user?.name ?? 'Usuário'}</Text>
-      <Text style={style.email}>{user?.email ?? 'sem-email@exemplo.com'}</Text>
+      <Text style={style.title}>Nome</Text>
+      <View style={{width:'80%',marginBottom:8}}>
+        <TextInput
+          style={{borderWidth:1,borderColor:'#ccc',borderRadius:8,padding:8}}
+          placeholder="Digite seu nome"
+          value={pendingName}
+          onChangeText={text => {
+            setShowPasswordPrompt(true);
+            setPendingName(text);
+          }}
+          editable={true}
+        />
+      </View>
+      <Text style={style.title}>E-mail</Text>
+      <View style={{width:'80%',marginBottom:8}}>
+        <TextInput
+          style={{borderWidth:1,borderColor:'#ccc',borderRadius:8,padding:8,backgroundColor:'#eee'}}
+          placeholder="Digite seu e-mail"
+          value={email}
+          editable={false}
+          keyboardType="email-address"
+        />
+      </View>
+      {showPasswordPrompt && (
+        <View style={{width:'80%',marginBottom:8}}>
+          <Text style={{marginBottom:4}}>Digite sua senha para alterar o nome:</Text>
+          <TextInput
+            style={{borderWidth:1,borderColor:'#ccc',borderRadius:8,padding:8}}
+            placeholder="Senha"
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry={true}
+          />
+          <TouchableOpacity style={{marginTop:8,backgroundColor:themes.colors.primary,padding:8,borderRadius:8}} onPress={async () => {
+            if (!password || password.length < 6) {
+              Alert.alert('Senha inválida','A senha deve ter pelo menos 6 caracteres.');
+              return;
+            }
+            // Verifica se a senha coincide com a cadastrada
+            let usersRaw = await AsyncStorage.getItem('users');
+            let users = usersRaw ? JSON.parse(usersRaw) : [];
+            let userFound = users.find((u: any) => u.email === email && u.password === password);
+            if (!userFound) {
+              Alert.alert('Erro','A senha não coincide com a adicionada anteriormente');
+              return;
+            }
+            setShowPasswordPrompt(false);
+            setName(pendingName);
+            Alert.alert('Nome alterado','Seu nome foi alterado com sucesso!');
+          }}>
+            <Text style={{color:'#fff',textAlign:'center'}}>Confirmar alteração</Text>
+          </TouchableOpacity>
+        </View>
+      )}
     </View>
   )
 }
