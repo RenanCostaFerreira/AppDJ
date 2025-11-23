@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, FlatList, TouchableOpacity, Image, Alert, TouchableWithoutFeedback, TextInput } from 'react-native';
 import { style } from './styles';
 import Logo from '../../assets/wrath.png';
+import { sampleCourses } from '../../data/courses';
 import { themes } from '../../global/themes';
 
 type Course = {
@@ -10,8 +11,8 @@ type Course = {
   image: any;
   short: string;
   description: string;
-  duration: string;
-  activities: string[];
+  duration?: string;
+  activities?: string[];
 }
 
 type Props = {
@@ -25,98 +26,7 @@ type Props = {
   onLogout?: () => void;
 }
 
-const sampleCourses: Course[] = [
-  {
-    id: '1',
-    title: 'Assistente Administrativo',
-    image: Logo,
-    short: 'Gestão e rotinas administrativas',
-    description: 'Aprenda os fundamentos da administração, organização de documentos, atendimento e suporte ao setor administrativo.',
-    duration: '3 meses',
-    activities: [
-      'Gestão de documentos',
-      'Atendimento ao público',
-      'Rotinas administrativas',
-      'Apoio na saúde mental',
-      'Inclusão para o mundo do trabalho'
-    ]
-  },
-  {
-    id: '2',
-    title: 'Programação de Dispositivos Móveis',
-    image: Logo,
-    short: 'Desenvolvimento de apps com React Native',
-    description: 'Aprenda a criar aplicativos móveis, usar Expo, gerenciar ativos e publicar aplicativos nas lojas.',
-    duration: '6 meses',
-    activities: [
-      'Desenvolvimento de trilhas formativas',
-      'Projetos práticos com React Native',
-      'Publicação de apps',
-      'Mentorias técnicas',
-      'Colaboração em equipe'
-    ]
-  },
-  {
-    id: '3',
-    title: 'Recursos Humanos e Liderança',
-    image: Logo,
-    short: 'Gestão de pessoas e liderança',
-    description: 'Desenvolva habilidades para atuar em RH, recrutamento, seleção, treinamento e liderança de equipes.',
-    duration: '4 meses',
-    activities: [
-      'Recrutamento e seleção',
-      'Treinamento de equipes',
-      'Gestão de conflitos',
-      'Mentorias de liderança',
-      'Apoio psicossocial'
-    ]
-  },
-  {
-    id: '4',
-    title: 'Design Gráfico e Criatividade',
-    image: Logo,
-    short: 'Criação visual e comunicação',
-    description: 'Aprenda princípios de design, ferramentas gráficas, criação de identidade visual e comunicação digital.',
-    duration: '5 meses',
-    activities: [
-      'Oficinas de design',
-      'Projetos de identidade visual',
-      'Comunicação digital',
-      'Colaboração criativa',
-      'Portfólio profissional'
-    ]
-  },
-  {
-    id: '5',
-    title: 'Empreendedorismo Social',
-    image: Logo,
-    short: 'Inovação e impacto social',
-    description: 'Desenvolva projetos de impacto social, aprenda sobre negócios sustentáveis e liderança comunitária.',
-    duration: '4 meses',
-    activities: [
-      'Criação de projetos sociais',
-      'Gestão sustentável',
-      'Liderança comunitária',
-      'Mentorias de impacto',
-      'Parcerias e networking'
-    ]
-  },
-  {
-    id: '6',
-    title: 'Tecnologia e Inovação',
-    image: Logo,
-    short: 'Ferramentas digitais e automação',
-    description: 'Explore ferramentas tecnológicas, automação de processos e inovação para o mercado de trabalho.',
-    duration: '3 meses',
-    activities: [
-      'Automação de processos',
-      'Uso de ferramentas digitais',
-      'Projetos de inovação',
-      'Oficinas práticas',
-      'Desenvolvimento de carreira'
-    ]
-  },
-];
+
 
 export default function Courses({ onBack, onOpenCourse, onOpenFavorites, onOpenProfile, currentUser, favorites = [], onToggleFavorite, onLogout }: Props) {
   const [menuVisible, setMenuVisible] = React.useState(false);
@@ -139,16 +49,18 @@ export default function Courses({ onBack, onOpenCourse, onOpenFavorites, onOpenP
     <View style={style.container}>
       {/* Header row: use existing header style to ensure horizontal layout */}
       <View style={style.header}>
-        <TouchableOpacity onPress={() => setMenuVisible(!menuVisible)} style={style.menuButton} hitSlop={{ top: 12, left: 12, right: 12, bottom: 12 }}>
-          <View style={style.menuBar} />
-          <View style={[style.menuBar, { marginVertical: 4 }]} />
-          <View style={style.menuBar} />
+        <View style={style.headerCenter}>
+          <Text style={style.headerGreeting}>Olá, {currentUser?.name ?? 'Você'}</Text>
+          <Text style={style.headerTitleSmall}>Conheça nossos cursos!</Text>
+        </View>
+
+        <TouchableOpacity onPress={() => onOpenProfile && onOpenProfile()} style={{ marginLeft: 8 }}>
+          {currentUser && (currentUser as any).avatar ? (
+            <Image source={{ uri: (currentUser as any).avatar }} style={style.headerAvatar} />
+          ) : (
+            <Image source={Logo} style={style.headerAvatar} />
+          )}
         </TouchableOpacity>
-
-        <Text style={style.headerTitleSmall}>Associação Comunitária Despertar
-        </Text>
-
-        <View style={{ width: 36 }} />
       </View>
 
       <View style={style.searchWrapper}>
@@ -164,7 +76,7 @@ export default function Courses({ onBack, onOpenCourse, onOpenFavorites, onOpenP
                 c.title.toLowerCase().includes(lower) ||
                 c.short.toLowerCase().includes(lower) ||
                 c.description.toLowerCase().includes(lower) ||
-                c.activities.some(a => a.toLowerCase().includes(lower))
+                (c.activities || []).some(a => a.toLowerCase().includes(lower))
               ));
             } else {
               setSuggestions([]);
@@ -251,14 +163,8 @@ export default function Courses({ onBack, onOpenCourse, onOpenFavorites, onOpenP
               <View style={style.cardBody}>
                 <View style={style.cardHeader}>
                   <Text style={style.cardTitle}>{item.title}</Text>
-                  <TouchableOpacity
-                    style={style.favoriteButton}
-                    onPress={() => { onToggleFavorite && onToggleFavorite(item.id); }}
-                    hitSlop={{ top: 8, left: 8, right: 8, bottom: 8 }}
-                  >
-                    <Text style={[style.favoriteStar, { color: isFav ? themes.colors.primary : '#999' }]}>{isFav ? '★' : '☆'}</Text>
-                  </TouchableOpacity>
                 </View>
+
                 <Text style={style.cardShort}>{item.short}</Text>
               </View>
             </TouchableOpacity>
@@ -273,7 +179,7 @@ export default function Courses({ onBack, onOpenCourse, onOpenFavorites, onOpenP
         </TouchableOpacity>
         <TouchableOpacity style={style.navItem}>
           <Image source={Logo} style={{ width: 20, height: 20 }} />
-          <Text style={style.navText}>Discover</Text>
+          <Text style={style.navText}>Descubra</Text>
         </TouchableOpacity>
         <TouchableOpacity style={style.navItem} onPress={onOpenFavorites}>
           <Image source={Logo} style={{ width: 20, height: 20 }} />

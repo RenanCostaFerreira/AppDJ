@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, FlatList, TouchableOpacity, Image } from 'react-native';
 import { style } from './styles';
 import Logo from '../../assets/wrath.png';
+import { sampleCourses } from '../../data/courses';
 import { themes } from '../../global/themes';
 
 type Course = {
@@ -19,11 +20,7 @@ type Props = {
   onToggleFavorite?: (courseId: string) => void;
 }
 
-const sampleCourses: Course[] = [
-  {id: '1', title: 'Assistente Administrativo', image: Logo, short: 'Introdução ao React Native', description: 'Aprenda os fundamentos do React Native para construir apps móveis.' },
-  {id: '2', title: 'Programação de Dispositivos Móveis', image: Logo, short: 'Use Expo para acelerar desenvolvimento', description: 'Aprenda a usar Expo, gerenciar ativos e publicar aplicativos.' },
-  {id: '3', title: 'Assistente de Recusos Humanos', image: Logo, short: 'Boas práticas de UI/UX', description: 'Aprenda princípios de design para criar interfaces móveis bonitas e usáveis.' }
-];
+
 
 export default function Favorites({ onBack, onOpenCourse, favorites = [], onToggleFavorite }: Props) {
   const items = sampleCourses.filter(c => (favorites || []).includes(c.id));
@@ -53,13 +50,8 @@ export default function Favorites({ onBack, onOpenCourse, favorites = [], onTogg
                 <View style={style.cardBody}>
                   <View style={style.cardHeader}>
                     <Text style={style.cardTitle}>{item.title}</Text>
-                    <TouchableOpacity
-                      onPress={(e) => { e.stopPropagation(); onToggleFavorite && onToggleFavorite(item.id); }}
-                      style={style.favoriteButton}
-                    >
-                      <Text style={[style.favoriteStar, { color: isFav ? themes.colors.primary : '#999' }]}>{isFav ? '★' : '☆'}</Text>
-                    </TouchableOpacity>
                   </View>
+
                   <Text style={style.cardShort}>{item.short}</Text>
                 </View>
               </TouchableOpacity>

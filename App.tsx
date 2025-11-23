@@ -20,7 +20,7 @@ type Course = {
 export default function App() {
   const [page, setPage] = React.useState<Page>('login');
   const [selectedCourse, setSelectedCourse] = React.useState<Course | null>(null);
-  const [currentUser, setCurrentUser] = React.useState<{name:string,email:string} | null>(null);
+  const [currentUser, setCurrentUser] = React.useState<{name:string,email:string, avatar?: string} | null>(null);
   const [favorites, setFavorites] = React.useState<string[]>([]);
 
   // load favorites for current user
@@ -65,10 +65,27 @@ export default function App() {
     });
   }
 
+  function handleUpdateUser(updates: Partial<{name:string,email:string,avatar?:string}>) {
+    console.log('handleUpdateUser called', updates);
+    setCurrentUser(prev => {
+      if (!prev) return prev;
+      const next = { ...prev, ...updates };
+      console.log('currentUser updated ->', next);
+      return next;
+    });
+  }
+
   function handleAuthSuccess(user: {name:string,email:string}) {
-    setCurrentUser(user);
-    loadFavoritesFor(user.email);
-    setPage('courses');
+    (async () => {
+      try {
+        const img = await AsyncStorage.getItem(`profileImage:${user.email}`);
+        setCurrentUser(img ? { ...user, avatar: img } : user);
+      } catch (err) {
+        setCurrentUser(user);
+      }
+      loadFavoritesFor(user.email);
+      setPage('courses');
+    })();
   }
 
   return (
@@ -89,7 +106,7 @@ export default function App() {
         <Favorites onBack={() => setPage('courses')} onOpenCourse={goToCourseDetail} favorites={favorites} onToggleFavorite={handleToggleFavorite} />
       )}
       {page === 'profile' && (
-        <Profile user={currentUser} onBack={() => setPage('courses')} onLogout={handleLogout} />
+        <Profile user={currentUser} onBack={() => setPage('courses')} onLogout={handleLogout} onUpdateUser={handleUpdateUser} />
       )}
     </GestureHandlerRootView>
   );

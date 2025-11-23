@@ -10,9 +10,10 @@ type Props = {
   user?: { name?: string; email?: string } | null;
   onBack?: () => void;
   onLogout?: () => void;
+  onUpdateUser?: (updates: Partial<{ name?: string; email?: string; avatar?: string }>) => void;
 }
 
-export default function Profile({ user, onBack, onLogout }: Props) {
+export default function Profile({ user, onBack, onLogout, onUpdateUser }: Props) {
   const [imageUri, setImageUri] = React.useState<string | null>(null);
   const [name, setName] = React.useState(user?.name ?? '');
   const [pendingName, setPendingName] = React.useState(user?.name ?? '');
@@ -56,6 +57,8 @@ export default function Profile({ user, onBack, onLogout }: Props) {
         if (uri) {
           setImageUri(uri);
           await AsyncStorage.setItem(`profileImage:${user.email}`, uri);
+          console.log('Profile: picked image uri ->', uri);
+          if (onUpdateUser) onUpdateUser({ avatar: uri });
         }
       } catch (err: any) {
         console.error('pickFromLibrary error', err);
@@ -94,6 +97,8 @@ export default function Profile({ user, onBack, onLogout }: Props) {
         if (uri) {
           setImageUri(uri);
           await AsyncStorage.setItem(`profileImage:${user.email}`, uri);
+          console.log('Profile: camera image uri ->', uri);
+          if (onUpdateUser) onUpdateUser({ avatar: uri });
         }
       } catch (err: any) {
         console.error('takePhoto error', err);
@@ -114,6 +119,8 @@ export default function Profile({ user, onBack, onLogout }: Props) {
     try {
       await AsyncStorage.removeItem(`profileImage:${user.email}`);
       setImageUri(null);
+      console.log('Profile: removed image for', user.email);
+      if (onUpdateUser) onUpdateUser({ avatar: undefined });
     } catch (err) {
       console.log('removeImage error', err);
     }

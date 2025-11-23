@@ -7,8 +7,8 @@ export const style = StyleSheet.create({
   /* Header */
   header: {
     width: '100%',
-    paddingTop: 36,
-    paddingBottom: 12,
+    paddingTop: 48,
+    paddingBottom: 18,
     paddingHorizontal: 16,
     backgroundColor: themes.colors.primary,
     flexDirection: 'row',
@@ -17,9 +17,11 @@ export const style = StyleSheet.create({
     borderBottomLeftRadius: 18,
     borderBottomRightRadius: 18,
   },
-  headerTitleSmall: { color: '#fff', fontWeight: '700', fontSize: 14 },
-  menuButton: { width: 36, height: 36, justifyContent: 'center', alignItems: 'center' },
-  menuBar: { width: 20, height: 2, backgroundColor: '#fff' },
+  headerTitleSmall: { color: '#fff', fontWeight: '700', fontSize: 16 },
+  headerCenter: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  headerGreeting: { color: '#fff', fontSize: 18, fontWeight: '700', marginBottom: 4 },
+  headerAvatar: { width: 44, height: 44, borderRadius: 22, marginRight: 4, borderWidth: 2, borderColor: 'rgba(255,255,255,0.2)' },
+  
 
   /* search */
   searchWrapper: { marginTop: 12, backgroundColor: '#fff', marginHorizontal: 16, borderRadius: 10, padding: 10 },
