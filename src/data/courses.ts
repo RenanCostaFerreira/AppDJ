@@ -1,14 +1,6 @@
 const Logo = require('../assets/wrath.png');
 
-export type Course = {
-  id: string;
-  title: string;
-  image: any;
-  short: string;
-  description: string;
-  duration?: string;
-  activities?: string[];
-}
+import { Course } from '../types/course';
 
 export const sampleCourses: Course[] = [
   {

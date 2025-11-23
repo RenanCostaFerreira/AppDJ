@@ -7,6 +7,7 @@ import Courses from './src/pages/courses';
 import CourseDetail from './src/pages/courseDetail';
 import Favorites from './src/pages/favorites';
 import Profile from './src/pages/profile';
+import { ThemeProvider } from './src/global/ThemeContext';
 
 type Page = 'login' | 'register' | 'courses' | 'courseDetail' | 'profile' | 'favorites';
 type Course = {
@@ -15,6 +16,8 @@ type Course = {
   image: any;
   short: string;
   description: string;
+  duration: string;
+  activities: string[];
 }
 
 export default function App() {
@@ -90,6 +93,7 @@ export default function App() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
+      <ThemeProvider>
       {page === 'login' && (
         <Login onNavigateToRegister={() => setPage('register')} onAuthSuccess={handleAuthSuccess} />
       )}
@@ -108,6 +112,7 @@ export default function App() {
       {page === 'profile' && (
         <Profile user={currentUser} onBack={() => setPage('courses')} onLogout={handleLogout} onUpdateUser={handleUpdateUser} />
       )}
+      </ThemeProvider>
     </GestureHandlerRootView>
   );
 }

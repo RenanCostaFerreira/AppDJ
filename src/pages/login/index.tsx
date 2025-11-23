@@ -4,110 +4,60 @@ import {
     Text,
     View,
     Image,
-    TextInput,
-    TouchableOpacity,
-    Alert,
-    ActivityIndicator
+    TouchableOpacity
 } from 'react-native';
 import { style } from './styles';
 import Logo from '../../assets/wrath.png';
-import { MaterialIcons, Octicons } from '@expo/vector-icons';
-import { themes } from '../../global/themes';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Input } from '../../components/input';
-import { Button } from '../../components/Button';
 type Props = {
-    onNavigateToRegister?: () => void,
+    onNavigateToRegister?: (role?: 'funcionario' | 'responsavel' | 'aluno') => void,
     onAuthSuccess?: (user: {name:string,email:string}) => void
 }
 
 export default function Login({ onNavigateToRegister, onAuthSuccess }: Props) {
-    const [email, setEmail] = React.useState('');
-    const [password, setPassword] = React.useState('');
-    const [showPassword, setShowPassword] = React.useState(true);
-    const [loading, setLoading] = React.useState(false);
-
-    async function getLogin() {
-        try {
-            setLoading(true)
-
-            if (!email || !password) {
-                setLoading(false)
-                return Alert.alert('Atenção!', 'Por favor, preencha todos os campos.');
-            }
-
-            setTimeout(async () => {
-                try {
-                    // check stored users first
-                    const usersRaw = await AsyncStorage.getItem('users');
-                    const users = usersRaw ? JSON.parse(usersRaw) : [];
-                    const found = users.find((u: any) => u.email === email && u.password === password);
-                    if (found) {
-                        Alert.alert('Logado com sucesso!');
-                        if (onAuthSuccess) onAuthSuccess({name: found.name || 'Usuário', email});
-                    } else if (email == 'ren.dark12@gmail.com' && password == '123456') {
-                        // fallback hardcoded account
-                        Alert.alert('Logado com sucesso!');
-                        if (onAuthSuccess) onAuthSuccess({name: 'Renan', email});
-                    } else {
-                        Alert.alert('Usuario não encontrado!');
-                    }
-                } catch (err) {
-                    console.log('login check error', err);
-                    Alert.alert('Erro', 'Ocorreu um erro ao fazer login.');
-                }
-                setLoading(false)
-            }, 3000)
-
-
-        } catch (error) {
-            console.log(error);
-            setLoading(false)
-        }
-    }
+    // simplified login: role selection only
 
     return (
         <View style={style.container}>
             <View style={style.BoxTop}>
-                <Image
-                    source={Logo}
-                    style={style.logo}
-                    resizeMode="contain"
-                />
-                <Text style={style.One}>Bem-vindo de volta!</Text>
+                <Image source={Logo} style={style.logo} resizeMode="contain" />
+                <Text style={style.One}>Bem-vindo</Text>
             </View>
-            <View style={style.BoxMid}>
 
-                <Input
-                    value={email}
-                    onChangeText={setEmail}
-                    title='Endereço de E-mail'
+            <View style={style.BoxBottonReduced}>
+                <Text style={style.textBottom}>Escolha o tipo de cadastro:</Text>
+                <View style={style.roleCards}>
+                    <TouchableOpacity style={style.roleCard} onPress={() => onNavigateToRegister && onNavigateToRegister('aluno')}>
+                        <View style={style.roleCardLeft}>
+                            <Text style={style.roleCardLabel}>Sou</Text>
+                            <Text style={style.roleCardTitle}>Estudante</Text>
+                        </View>
+                        <View style={style.roleCardRight}>
+                            <Text style={style.roleCardArrow}>›</Text>
+                        </View>
+                    </TouchableOpacity>
 
-                    IconRigth={MaterialIcons}
-                    IconRigthName="email"
-                />
+                    <TouchableOpacity style={style.roleCard} onPress={() => onNavigateToRegister && onNavigateToRegister('funcionario')}>
+                        <View style={style.roleCardLeft}>
+                            <Text style={style.roleCardLabel}>Sou</Text>
+                            <Text style={style.roleCardTitle}>Servidor</Text>
+                            <Text style={style.govBadge}>acesso via GOV.BR</Text>
+                        </View>
+                        <View style={style.roleCardRight}>
+                            <Text style={style.roleCardArrow}>›</Text>
+                        </View>
+                    </TouchableOpacity>
 
-                <Input
-                    value={password}
-                    onChangeText={setPassword}
-                    title='Senha'
-                    IconRigth={Octicons}
-                    IconRigthName={showPassword ? "eye-closed" : "eye"}
-                    secureTextEntry={showPassword}
-                    onIconRigthPress={() => setShowPassword(!showPassword)}
-                />
-
+                    <TouchableOpacity style={style.roleCard} onPress={() => onNavigateToRegister && onNavigateToRegister('responsavel')}>
+                        <View style={style.roleCardLeft}>
+                            <Text style={style.roleCardLabel}>Sou</Text>
+                            <Text style={style.roleCardTitle}>Responsável</Text>
+                        </View>
+                        <View style={style.roleCardRight}>
+                            <Text style={style.roleCardArrow}>›</Text>
+                        </View>
+                    </TouchableOpacity>
+                </View>
             </View>
-            <View style={style.BoxBotton}>
-                <Button 
-                    text='Entrar'
-                    loading={loading}
-                    onPress={getLogin}
-                />
-            </View>
-            <Text style={style.textBottom}>Não tem conta? <Text style={{ color: themes.colors.primary }} onPress={onNavigateToRegister}>Crie agora!</Text></Text>
-
-            {/* Cursos só disponíveis após login */}
         </View>
-    )
+    );
 }

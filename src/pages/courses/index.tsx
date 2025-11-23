@@ -3,17 +3,10 @@ import { View, Text, FlatList, TouchableOpacity, Image, Alert, TouchableWithoutF
 import { style } from './styles';
 import Logo from '../../assets/wrath.png';
 import { sampleCourses } from '../../data/courses';
+import { Course } from '../../types/course';
 import { themes } from '../../global/themes';
 
-type Course = {
-  id: string;
-  title: string;
-  image: any;
-  short: string;
-  description: string;
-  duration?: string;
-  activities?: string[];
-}
+// use shared Course type
 
 type Props = {
   onBack?: () => void;

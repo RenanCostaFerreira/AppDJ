@@ -10,10 +10,11 @@ import { themes } from '../../global/themes';
 import { TouchableOpacity } from 'react-native-gesture-handler';
 type Props = {
     onNavigateToLogin?: () => void,
-    onAuthSuccess?: (user: {name:string,email:string}) => void
+    onAuthSuccess?: (user: {name:string,email:string}) => void,
+    role?: 'funcionario' | 'responsavel' | 'aluno'
 }
 
-export default function Register({ onNavigateToLogin, onAuthSuccess }: Props) {
+export default function Register({ onNavigateToLogin, onAuthSuccess, role }: Props) {
     const [name, setName] = React.useState('');
     const [email, setEmail] = React.useState('');
     const [password, setPassword] = React.useState('');
@@ -22,7 +23,9 @@ export default function Register({ onNavigateToLogin, onAuthSuccess }: Props) {
     const [loading, setLoading] = React.useState(false);
     const [nameError, setNameError] = React.useState('');
     const [passwordError, setPasswordError] = React.useState('');
+    const [cpf, setCpf] = React.useState('');
 
+    
     async function handleRegister() {
         try {
             setLoading(true);
@@ -96,15 +99,13 @@ export default function Register({ onNavigateToLogin, onAuthSuccess }: Props) {
         }
     }
 
+    const roleLabel = role === 'aluno' ? 'Estudante' : role === 'funcionario' ? 'Servidor' : role === 'responsavel' ? 'Responsável' : '';
+
     return (
         <View style={style.container}>
             <View style={style.BoxTop}>
-                <Image
-                    source={Logo}
-                    style={style.logo}
-                    resizeMode="contain"
-                />
-                <Text style={style.One}>Crie sua conta</Text>
+                <Image source={Logo} style={style.logo} resizeMode="contain" />
+                <Text style={style.One}>{roleLabel ? `Cadastro — ${roleLabel}` : 'Crie sua conta'}</Text>
             </View>
 
             <View style={style.BoxMid}>
@@ -149,7 +150,7 @@ export default function Register({ onNavigateToLogin, onAuthSuccess }: Props) {
                 />
             </View>
 
-            <Text style={style.textBottom}>Já tem conta? <Text style={{ color: themes.colors.primary }} onPress={onNavigateToLogin}>Entrar</Text></Text>
+            <Text style={style.textBottom}>Seção Errada ?<Text style={{ color: themes.colors.primary }} onPress={onNavigateToLogin}>Voltar</Text></Text>
 
             {/* Cursos só disponíveis após login */}
         </View>

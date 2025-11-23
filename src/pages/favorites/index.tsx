@@ -4,14 +4,7 @@ import { style } from './styles';
 import Logo from '../../assets/wrath.png';
 import { sampleCourses } from '../../data/courses';
 import { themes } from '../../global/themes';
-
-type Course = {
-  id: string;
-  title: string;
-  image: any;
-  short: string;
-  description: string;
-}
+import { Course } from '../../types/course';
 
 type Props = {
   onBack?: () => void;

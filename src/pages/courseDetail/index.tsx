@@ -1,16 +1,7 @@
 import React from 'react';
 import { View, Text, Image, TouchableOpacity, Alert } from 'react-native';
 import { style } from './styles';
-
-type Course = {
-  id: string;
-  title: string;
-  image: any;
-  short: string;
-  description: string;
-  duration: string;
-  activities: string[];
-}
+import { Course } from '../../types/course';
 
 type Props = {
   course: Course;
