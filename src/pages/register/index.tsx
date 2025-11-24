@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, Image, Alert } from 'react-native';
+import { View, Text, Image, Alert, TouchableOpacity, StyleSheet } from 'react-native';
 import { style } from './styles';
 import Logo from '../../assets/wrath.png';
 import { Input } from '../../components/input';
@@ -7,7 +7,6 @@ import { Button } from '../../components/Button';
 import { Octicons, MaterialIcons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { themes } from '../../global/themes';
-import { TouchableOpacity } from 'react-native-gesture-handler';
 type Props = {
     onNavigateToLogin?: () => void,
     onAuthSuccess?: (user: {name:string,email:string}) => void,
@@ -103,6 +102,9 @@ export default function Register({ onNavigateToLogin, onAuthSuccess, role }: Pro
 
     return (
         <View style={style.container}>
+            <TouchableOpacity onPress={onNavigateToLogin} style={localStyles.backButton}>
+                <Text style={localStyles.backIcon}>{'‹'}</Text>
+            </TouchableOpacity>
             <View style={style.BoxTop}>
                 <Image source={Logo} style={style.logo} resizeMode="contain" />
                 <Text style={style.One}>{roleLabel ? `Cadastro — ${roleLabel}` : 'Crie sua conta'}</Text>
@@ -150,9 +152,23 @@ export default function Register({ onNavigateToLogin, onAuthSuccess, role }: Pro
                 />
             </View>
 
-            <Text style={style.textBottom}>Seção Errada ?<Text style={{ color: themes.colors.primary }} onPress={onNavigateToLogin}>Voltar</Text></Text>
 
             {/* Cursos só disponíveis após login */}
         </View>
     );
 }
+
+const localStyles = StyleSheet.create({
+    backButton: {
+        position: 'absolute',
+        top: 18,
+        left: 12,
+        zIndex: 20,
+        padding: 8,
+        backgroundColor: 'transparent'
+    },
+    backIcon: {
+        fontSize: 28,
+        color: '#666'
+    }
+});

@@ -1,6 +1,7 @@
 import React from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Welcome from './src/pages/welcome';
 import Login from './src/pages/login';
 import Register from './src/pages/register';
 import Courses from './src/pages/courses';
@@ -95,7 +96,10 @@ export default function App() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <ThemeProvider>
       {page === 'login' && (
-        <Login onNavigateToRegister={() => setPage('register')} onAuthSuccess={handleAuthSuccess} />
+        <Welcome onNavigateToRegister={() => setPage('register')} onNavigateToLogin={() => setPage('loginForm')} />
+      )}
+      {page === 'loginForm' && (
+        <Login initialMode='form' onNavigateToRegister={() => setPage('register')} onAuthSuccess={handleAuthSuccess} />
       )}
       {page === 'register' && (
         <Register onNavigateToLogin={() => setPage('login')} onAuthSuccess={handleAuthSuccess} />
