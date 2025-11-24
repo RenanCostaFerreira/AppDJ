@@ -22,7 +22,6 @@ export default function Welcome({ onNavigateToRegister, onNavigateToLogin }: Pro
           <TouchableOpacity
             style={style.roleCard}
             onPress={() => {
-              Alert.alert('Debug', 'Estudante pressionado');
               if (onNavigateToLogin) onNavigateToLogin();
               else if (onNavigateToRegister) onNavigateToRegister('aluno');
             }}
@@ -38,9 +37,7 @@ export default function Welcome({ onNavigateToRegister, onNavigateToLogin }: Pro
 
           <TouchableOpacity style={style.roleCard} onPress={() => onNavigateToRegister && onNavigateToRegister('funcionario')}>
             <View style={style.roleCardLeft}>
-              <Text style={style.roleCardLabel}>Sou</Text>
-              <Text style={style.roleCardTitle}>Servidor</Text>
-              <Text style={style.govBadge}>acesso via GOV.BR</Text>
+              <Text style={style.roleCardTitle}>Funcionário</Text>
             </View>
             <View style={style.roleCardRight}>
               <Text style={style.roleCardArrow}>›</Text>
