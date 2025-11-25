@@ -1,25 +1,32 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, Image, Alert, Platform, TextInput } from 'react-native';
 import { style } from './styles';
+import { formatCPF, onlyDigits, validateCPF } from '../../utils/cpf';
+import { Input } from '../../components/input';
+import { User } from '../../types/user';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as ImagePicker from 'expo-image-picker';
 import * as DocumentPicker from 'expo-document-picker';
 import { themes } from '../../global/themes';
 
 type Props = {
-  user?: { name?: string; email?: string } | null;
+  user?: User | null;
   onBack?: () => void;
   onLogout?: () => void;
-  onUpdateUser?: (updates: Partial<{ name?: string; email?: string; avatar?: string }>) => void;
+  onUpdateUser?: (updates: Partial<User>) => void;
 }
 
 export default function Profile({ user, onBack, onLogout, onUpdateUser }: Props) {
   const [imageUri, setImageUri] = React.useState<string | null>(null);
   const [name, setName] = React.useState(user?.name ?? '');
   const [pendingName, setPendingName] = React.useState(user?.name ?? '');
-  const [email] = React.useState(user?.email ?? '');
+  // email is derived from current user prop; we use it directly from `user` to avoid stale values
+  const email = user?.email ?? '';
   const [showPasswordPrompt, setShowPasswordPrompt] = React.useState(false);
   const [password, setPassword] = React.useState('');
+  const [editingCpf, setEditingCpf] = React.useState(false);
+  const [editingRole, setEditingRole] = React.useState(false);
+  const [cpfInput, setCpfInput] = React.useState(user?.cpf ?? '');
 
   React.useEffect(() => {
     (async () => {
@@ -126,6 +133,48 @@ export default function Profile({ user, onBack, onLogout, onUpdateUser }: Props)
     }
   }
 
+  async function saveCpf(newCpf: string) {
+    if (!user?.email) return;
+    const digits = onlyDigits(newCpf);
+    if (!validateCPF(digits)) {
+      Alert.alert('CPF inválido', 'Por favor, informe um CPF válido.');
+      return;
+    }
+    try {
+      const usersRaw = await AsyncStorage.getItem('users');
+      const users = usersRaw ? JSON.parse(usersRaw) : [];
+      const idx = users.findIndex((u: any) => u.email === user.email);
+      if (idx >= 0) {
+        users[idx].cpf = digits;
+        await AsyncStorage.setItem('users', JSON.stringify(users));
+        if (onUpdateUser) onUpdateUser({ cpf: digits });
+        Alert.alert('CPF atualizado', 'Seu CPF foi atualizado com sucesso.');
+        setEditingCpf(false);
+      }
+    } catch (err) {
+      console.error('saveCpf error', err);
+      Alert.alert('Erro', 'Não foi possível salvar o CPF.');
+    }
+  }
+
+  async function changeRole(role: User['role']) {
+    if (!user?.email) return;
+    try {
+      const usersRaw = await AsyncStorage.getItem('users');
+      const users = usersRaw ? JSON.parse(usersRaw) : [];
+      const idx = users.findIndex((u: any) => u.email === user.email);
+      if (idx >= 0) {
+        users[idx].role = role;
+        await AsyncStorage.setItem('users', JSON.stringify(users));
+        if (onUpdateUser) onUpdateUser({ role });
+        Alert.alert('Perfil atualizado', `Seu perfil foi alterado para ${role}.`);
+      }
+    } catch (err) {
+      console.error('changeRole error', err);
+      Alert.alert('Erro', 'Não foi possível alterar o perfil.');
+    }
+  }
+
   return (
     <View style={style.container}>
       <View style={style.header}>
@@ -157,28 +206,83 @@ export default function Profile({ user, onBack, onLogout, onUpdateUser }: Props)
         </TouchableOpacity>
       ) : null}
 
-      <Text style={style.title}>Nome</Text>
-      <View style={{width:'80%',marginBottom:8}}>
-        <TextInput
-          style={{borderWidth:1,borderColor:'#ccc',borderRadius:8,padding:8}}
-          placeholder="Digite seu nome"
+      <View style={style.infoContainer}>
+        <Text style={style.title}>Nome</Text>
+        <View style={{width:'100%',marginBottom:8}}>
+        <Input
           value={pendingName}
           onChangeText={text => {
             setShowPasswordPrompt(true);
             setPendingName(text);
           }}
-          editable={true}
+          placeholder="Digite seu nome"
         />
       </View>
-      <Text style={style.title}>E-mail</Text>
-      <View style={{width:'80%',marginBottom:8}}>
-        <TextInput
-          style={{borderWidth:1,borderColor:'#ccc',borderRadius:8,padding:8,backgroundColor:'#eee'}}
-          placeholder="Digite seu e-mail"
+        <Text style={style.title}>E-mail</Text>
+        <View style={{width:'100%',marginBottom:8}}>
+        <Input
           value={email}
           editable={false}
           keyboardType="email-address"
         />
+      </View>
+        {(user?.role === 'responsavel' || user?.role === 'aluno') && (
+          <>
+            <Text style={style.title}>CPF</Text>
+            <View style={{width:'100%',marginBottom:8}}>
+              {!editingCpf ? (
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                  <Input
+                    value={formatCPF(user?.cpf ?? '')}
+                    editable={false}
+                    keyboardType="numeric"
+                />
+                  <TouchableOpacity style={{ marginLeft: 8 }} onPress={() => { setCpfInput(user?.cpf ?? ''); setEditingCpf(true); }}>
+                    <Text style={{ color: themes.colors.primary }}>Editar</Text>
+                  </TouchableOpacity>
+                </View>
+              ) : (
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                  <Input
+                    value={formatCPF(cpfInput)}
+                    onChangeText={(t: string) => setCpfInput(onlyDigits(t).slice(0,11))}
+                    placeholder="CPF"
+                    keyboardType='number-pad'
+                />
+                  <TouchableOpacity style={{ marginLeft: 8 }} onPress={() => saveCpf(cpfInput)}>
+                    <Text style={{ color: themes.colors.primary }}>Salvar</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={{ marginLeft: 8 }} onPress={() => setEditingCpf(false)}>
+                    <Text style={{ color: '#999' }}>Cancelar</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+            </View>
+          </>
+        )}
+        {user?.role && (
+          <>
+            <Text style={style.title}>Perfil</Text>
+            <View style={{width:'100%',marginBottom:8}}>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <Input
+                  value={user?.role ?? ''}
+                  editable={false}
+                />
+                <TouchableOpacity style={{ marginLeft: 8 }} onPress={() => {
+                  Alert.alert('Alterar perfil', undefined, [
+                    { text: 'Aluno', onPress: () => changeRole('aluno') },
+                    { text: 'Servidor', onPress: () => changeRole('funcionario') },
+                    { text: 'Responsável', onPress: () => changeRole('responsavel') },
+                    { text: 'Cancelar', style: 'cancel' }
+                  ]);
+                }}>
+                  <Text style={{ color: themes.colors.primary }}>Alterar</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </>
+        )}
       </View>
       {showPasswordPrompt && (
         <View style={{width:'80%',marginBottom:8}}>
@@ -198,13 +302,14 @@ export default function Profile({ user, onBack, onLogout, onUpdateUser }: Props)
             // Verifica se a senha coincide com a cadastrada
             let usersRaw = await AsyncStorage.getItem('users');
             let users = usersRaw ? JSON.parse(usersRaw) : [];
-            let userFound = users.find((u: any) => u.email === email && u.password === password);
+            let userFound = users.find((u: any) => u.email === (user?.email ?? '') && u.password === password);
             if (!userFound) {
               Alert.alert('Erro','A senha não coincide com a adicionada anteriormente');
               return;
             }
             setShowPasswordPrompt(false);
             setName(pendingName);
+            if (onUpdateUser) onUpdateUser({ name: pendingName });
             Alert.alert('Nome alterado','Seu nome foi alterado com sucesso!');
           }}>
             <Text style={{color:'#fff',textAlign:'center'}}>Confirmar alteração</Text>

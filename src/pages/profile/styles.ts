@@ -16,4 +16,6 @@ export const style = StyleSheet.create({
   removePhotoText: { color: '#999' },
   title: { fontSize: 20, fontWeight: '700', marginTop: 12 },
   email: { color: themes.colors.gray, marginBottom: 16 }
+  ,
+  infoContainer: { width: '100%', padding: 16, borderRadius: 8, backgroundColor: '#fafafa', marginTop: 12, alignItems: 'center' }
 });

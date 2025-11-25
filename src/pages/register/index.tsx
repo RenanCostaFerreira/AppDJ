@@ -3,13 +3,15 @@ import { View, Text, Image, Alert, TouchableOpacity, StyleSheet } from 'react-na
 import { style } from './styles';
 import Logo from '../../assets/wrath.png';
 import { Input } from '../../components/input';
+import { onlyDigits, formatCPF, validateCPF } from '../../utils/cpf';
 import { Button } from '../../components/Button';
 import { Octicons, MaterialIcons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { themes } from '../../global/themes';
+import { User } from '../../types/user';
 type Props = {
     onNavigateToLogin?: () => void,
-    onAuthSuccess?: (user: {name:string,email:string}) => void,
+    onAuthSuccess?: (user: User) => void,
     role?: 'funcionario' | 'responsavel' | 'aluno'
 }
 
@@ -33,7 +35,7 @@ export default function Register({ onNavigateToLogin, onAuthSuccess, role }: Pro
 
             setNameError('');
             setPasswordError('');
-            if (!name || !email || !password || !confirmPassword || (role === 'responsavel' && !cpf)) {
+            if (!name || !email || !password || !confirmPassword || ((role === 'responsavel' || role === 'aluno') && !cpf)) {
                 setLoading(false);
                 Alert.alert('Atenção!', 'Por favor, preencha todos os campos.');
                 return;
@@ -72,13 +74,13 @@ export default function Register({ onNavigateToLogin, onAuthSuccess, role }: Pro
                 return;
             }
 
-            // CPF validation for responsavel
-            if (role === 'responsavel') {
-                const digits = cpf.replace(/\D/g, '');
-                if (digits.length !== 11) {
+            // CPF validation for responsavel and aluno (using checksum)
+            if ((role === 'responsavel' || role === 'aluno' || cpf.length <11)) {
+                const digits = onlyDigits(cpf);
+                if (!validateCPF(digits)) {
                     setLoading(false);
-                    setCpfError('CPF inválido, deve conter 11 dígitos');
-                    Alert.alert('CPF inválido', 'Por favor, informe um CPF válido com 11 dígitos.');
+                    setCpfError('CPF inválido');
+                    Alert.alert('CPF inválido', 'Por favor, informe um CPF válido.');
                     return;
                 }
                 setCpfError('');
@@ -87,14 +89,16 @@ export default function Register({ onNavigateToLogin, onAuthSuccess, role }: Pro
             // Simula chamada de API
             setTimeout(async () => {
                 // save user locally
+                let createdUser: any = null;
                 try {
                     const usersRaw = await AsyncStorage.getItem('users');
                     const users = usersRaw ? JSON.parse(usersRaw) : [];
                     // store role and cpf if available
                     const userObj: any = { name, email, password };
                     if (role) userObj.role = role;
-                    if (role === 'responsavel' && cpf) userObj.cpf = cpf;
+                    if ((role === 'responsavel' || role === 'aluno') && cpf) userObj.cpf = cpf;
                     users.push(userObj);
+                    createdUser = userObj;
                     await AsyncStorage.setItem('users', JSON.stringify(users));
                 } catch (err) {
                     console.log('Error saving user', err);
@@ -103,8 +107,8 @@ export default function Register({ onNavigateToLogin, onAuthSuccess, role }: Pro
                 setLoading(false);
                 Alert.alert('Sucesso', 'Usuário criado com sucesso!');
                 // navegar direto para cursos após registro (autentica o usuário)
-                if (onAuthSuccess) {
-                    onAuthSuccess({ name, email });
+                    if (onAuthSuccess) {
+                    onAuthSuccess(createdUser as User);
                 } else if (onNavigateToLogin) {
                     onNavigateToLogin();
                 }
@@ -144,13 +148,14 @@ export default function Register({ onNavigateToLogin, onAuthSuccess, role }: Pro
                     IconRigthName="email"
                 />
 
-                {role === 'responsavel' && (
+                {(role === 'responsavel' || role === 'aluno') && (
                     <>
                         <Input
-                            value={cpf}
-                            onChangeText={setCpf}
+                            value={formatCPF(cpf)}
+                            onChangeText={t => setCpf(onlyDigits(t).slice(0,11))}
                             title='CPF'
-                            keyboardType='numeric'
+                            keyboardType='number-pad'
+                            maxLength={14}
                         />
                         {cpfError ? <Text style={{ color: 'red', marginBottom: 8 }}>{cpfError}</Text> : null}
                     </>

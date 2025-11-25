@@ -1,11 +1,12 @@
 import React from 'react';
 import { Text, View, Image, TouchableOpacity, Alert } from 'react-native';
 import { style } from '../login/styles';
+import { themes } from '../../global/themes';
 import Logo from '../../assets/wrath.png';
 
 type Props = {
   onNavigateToRegister?: (role?: 'funcionario' | 'responsavel' | 'aluno') => void;
-  onNavigateToLogin?: () => void;
+  onNavigateToLogin?: (role?: 'funcionario' | 'responsavel' | 'aluno') => void;
 }
 
 export default function Welcome({ onNavigateToRegister, onNavigateToLogin }: Props) {
@@ -21,17 +22,18 @@ export default function Welcome({ onNavigateToRegister, onNavigateToLogin }: Pro
         <View style={style.roleCards}>
           <TouchableOpacity
             style={style.roleCard}
-            onPress={() => {
-              if (onNavigateToLogin) onNavigateToLogin();
-              else if (onNavigateToRegister) onNavigateToRegister('aluno');
-            }}
+            onPress={() => { if (onNavigateToRegister) onNavigateToRegister('aluno'); }}
           >
             <View style={style.roleCardLeft}>
               <Text style={style.roleCardLabel}>Sou</Text>
               <Text style={style.roleCardTitle}>Estudante</Text>
             </View>
+            <View style={style.roleCardRight}>
+              <Text style={style.roleCardArrow} onPress={() => onNavigateToLogin && onNavigateToLogin('aluno')}>›</Text>
+            </View>
+            
           </TouchableOpacity>
-          <TouchableOpacity style={style.roleCard} onPress={() => onNavigateToRegister && onNavigateToRegister('responsavel')}>
+          <TouchableOpacity style={style.roleCard} onPress={() => onNavigateToLogin && onNavigateToLogin('responsavel')}>
             <View style={style.roleCardLeft}>
               <Text style={style.roleCardLabel}>Sou</Text>
               <Text style={style.roleCardTitle}>Responsável</Text>
@@ -40,6 +42,7 @@ export default function Welcome({ onNavigateToRegister, onNavigateToLogin }: Pro
               <Text style={style.roleCardArrow}>›</Text>
             </View>
           </TouchableOpacity>
+          {/* Removed explicit "Entrar com CPF" link: the Responsável card now leads to Login with CPF mode. */}
         </View>
       </View>
     </View>

@@ -13,6 +13,7 @@ type Props = {
   onOpenCourse: (course: Course) => void;
   onOpenFavorites?: () => void;
   onOpenProfile?: () => void;
+  onOpenDiscover?: () => void;
   currentUser?: { name: string; email: string } | null;
   favorites?: string[];
   onToggleFavorite?: (courseId: string) => void;
@@ -21,7 +22,7 @@ type Props = {
 
 
 
-export default function Courses({ onBack, onOpenCourse, onOpenFavorites, onOpenProfile, currentUser, favorites = [], onToggleFavorite, onLogout }: Props) {
+export default function Courses({ onBack, onOpenCourse, onOpenFavorites, onOpenProfile, onOpenDiscover, currentUser, favorites = [], onToggleFavorite, onLogout }: Props) {
   const [menuVisible, setMenuVisible] = React.useState(false);
   const [favoritesVisible, setFavoritesVisible] = React.useState(false);
   const [search, setSearch] = React.useState('');
@@ -91,26 +92,6 @@ export default function Courses({ onBack, onOpenCourse, onOpenFavorites, onOpenP
         )}
       </View>
 
-      {/* Services row */}
-      <View style={style.servicesRow}>
-        <View style={style.serviceItem}>
-          <Image source={Logo} style={{ width: 36, height: 36 }} />
-          <Text style={style.serviceLabel}>Design</Text>
-        </View>
-        <View style={style.serviceItem}>
-          <Image source={Logo} style={{ width: 36, height: 36 }} />
-          <Text style={style.serviceLabel}>Programação</Text>
-        </View>
-        <View style={style.serviceItem}>
-          <Image source={Logo} style={{ width: 36, height: 36 }} />
-          <Text style={style.serviceLabel}>RH</Text>
-        </View>
-        <View style={style.serviceItem}>
-          <Image source={Logo} style={{ width: 36, height: 36 }} />
-          <Text style={style.serviceLabel}>Mais</Text>
-        </View>
-      </View>
-
       {menuVisible && (
         <>
           <TouchableOpacity style={style.overlayBackground} activeOpacity={1} onPress={() => setMenuVisible(false)} />
@@ -170,7 +151,7 @@ export default function Courses({ onBack, onOpenCourse, onOpenFavorites, onOpenP
           <Image source={Logo} style={{ width: 20, height: 20, tintColor: themes.colors.primary }} />
           <Text style={style.navText}>Home</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={style.navItem}>
+        <TouchableOpacity style={style.navItem} onPress={() => onOpenDiscover && onOpenDiscover()}>
           <Image source={Logo} style={{ width: 20, height: 20 }} />
           <Text style={style.navText}>Descubra</Text>
         </TouchableOpacity>
