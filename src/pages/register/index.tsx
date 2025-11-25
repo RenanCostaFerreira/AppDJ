@@ -16,13 +16,15 @@ type Props = {
 export default function Register({ onNavigateToLogin, onAuthSuccess, role }: Props) {
     const [name, setName] = React.useState('');
     const [email, setEmail] = React.useState('');
+    const [cpf, setCpf] = React.useState('');
     const [password, setPassword] = React.useState('');
     const [confirmPassword, setConfirmPassword] = React.useState('');
     const [showPassword, setShowPassword] = React.useState(true);
     const [loading, setLoading] = React.useState(false);
     const [nameError, setNameError] = React.useState('');
     const [passwordError, setPasswordError] = React.useState('');
-    const [cpf, setCpf] = React.useState('');
+    const [cpfError, setCpfError] = React.useState('');
+    // CPF specific field for 'responsavel'
 
     
     async function handleRegister() {
@@ -31,7 +33,7 @@ export default function Register({ onNavigateToLogin, onAuthSuccess, role }: Pro
 
             setNameError('');
             setPasswordError('');
-            if (!name || !email || !password || !confirmPassword) {
+            if (!name || !email || !password || !confirmPassword || (role === 'responsavel' && !cpf)) {
                 setLoading(false);
                 Alert.alert('Atenção!', 'Por favor, preencha todos os campos.');
                 return;
@@ -70,13 +72,29 @@ export default function Register({ onNavigateToLogin, onAuthSuccess, role }: Pro
                 return;
             }
 
+            // CPF validation for responsavel
+            if (role === 'responsavel') {
+                const digits = cpf.replace(/\D/g, '');
+                if (digits.length !== 11) {
+                    setLoading(false);
+                    setCpfError('CPF inválido, deve conter 11 dígitos');
+                    Alert.alert('CPF inválido', 'Por favor, informe um CPF válido com 11 dígitos.');
+                    return;
+                }
+                setCpfError('');
+            }
+
             // Simula chamada de API
             setTimeout(async () => {
                 // save user locally
                 try {
                     const usersRaw = await AsyncStorage.getItem('users');
                     const users = usersRaw ? JSON.parse(usersRaw) : [];
-                    users.push({ name, email, password });
+                    // store role and cpf if available
+                    const userObj: any = { name, email, password };
+                    if (role) userObj.role = role;
+                    if (role === 'responsavel' && cpf) userObj.cpf = cpf;
+                    users.push(userObj);
                     await AsyncStorage.setItem('users', JSON.stringify(users));
                 } catch (err) {
                     console.log('Error saving user', err);
@@ -125,6 +143,18 @@ export default function Register({ onNavigateToLogin, onAuthSuccess, role }: Pro
                     IconRigth={MaterialIcons}
                     IconRigthName="email"
                 />
+
+                {role === 'responsavel' && (
+                    <>
+                        <Input
+                            value={cpf}
+                            onChangeText={setCpf}
+                            title='CPF'
+                            keyboardType='numeric'
+                        />
+                        {cpfError ? <Text style={{ color: 'red', marginBottom: 8 }}>{cpfError}</Text> : null}
+                    </>
+                )}
 
                 <Input
                     value={password}

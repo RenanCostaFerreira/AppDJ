@@ -9,8 +9,9 @@ import CourseDetail from './src/pages/courseDetail';
 import Favorites from './src/pages/favorites';
 import Profile from './src/pages/profile';
 import { ThemeProvider } from './src/global/ThemeContext';
-
-type Page = 'login' | 'register' | 'courses' | 'courseDetail' | 'profile' | 'favorites';
+import { Alert, Platform } from 'react-native';
+// removed duplicate stray import
+type Page = 'login' | 'loginForm' | 'register' | 'courses' | 'courseDetail' | 'profile' | 'favorites';
 type Course = {
   id: string;
   title: string;
@@ -26,6 +27,7 @@ export default function App() {
   const [selectedCourse, setSelectedCourse] = React.useState<Course | null>(null);
   const [currentUser, setCurrentUser] = React.useState<{name:string,email:string, avatar?: string} | null>(null);
   const [favorites, setFavorites] = React.useState<string[]>([]);
+  const [registerRole, setRegisterRole] = React.useState<'funcionario'|'responsavel'|'aluno' | undefined>(undefined);
 
   // load favorites for current user
   async function loadFavoritesFor(userEmail?: string) {
@@ -96,13 +98,13 @@ export default function App() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <ThemeProvider>
       {page === 'login' && (
-        <Welcome onNavigateToRegister={() => setPage('register')} onNavigateToLogin={() => setPage('loginForm')} />
+        <Welcome onNavigateToRegister={(role?: 'funcionario'|'responsavel'|'aluno') => { setRegisterRole(role); setPage('register'); }} onNavigateToLogin={() => setPage('loginForm')} />
       )}
       {page === 'loginForm' && (
-        <Login initialMode='form' onNavigateToRegister={() => setPage('register')} onAuthSuccess={handleAuthSuccess} />
+        <Login initialMode='form' onNavigateToRegister={(role?: 'funcionario'|'responsavel'|'aluno') => { setRegisterRole(role); setPage('register'); }} onAuthSuccess={handleAuthSuccess} />
       )}
       {page === 'register' && (
-        <Register onNavigateToLogin={() => setPage('login')} onAuthSuccess={handleAuthSuccess} />
+        <Register role={registerRole} onNavigateToLogin={() => { setRegisterRole(undefined); setPage('login'); }} onAuthSuccess={(user) => { setRegisterRole(undefined); handleAuthSuccess(user); }} />
       )}
       {page === 'courses' && (
         <Courses onBack={() => handleLogout()} onOpenCourse={goToCourseDetail} onOpenFavorites={() => setPage('favorites')} onOpenProfile={() => setPage('profile')} currentUser={currentUser} favorites={favorites} onToggleFavorite={handleToggleFavorite} onLogout={handleLogout} />

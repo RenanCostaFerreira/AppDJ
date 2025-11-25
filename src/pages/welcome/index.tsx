@@ -30,20 +30,7 @@ export default function Welcome({ onNavigateToRegister, onNavigateToLogin }: Pro
               <Text style={style.roleCardLabel}>Sou</Text>
               <Text style={style.roleCardTitle}>Estudante</Text>
             </View>
-            <View style={style.roleCardRight}>
-              <Text style={style.roleCardArrow}>›</Text>
-            </View>
           </TouchableOpacity>
-
-          <TouchableOpacity style={style.roleCard} onPress={() => onNavigateToRegister && onNavigateToRegister('funcionario')}>
-            <View style={style.roleCardLeft}>
-              <Text style={style.roleCardTitle}>Funcionário</Text>
-            </View>
-            <View style={style.roleCardRight}>
-              <Text style={style.roleCardArrow}>›</Text>
-            </View>
-          </TouchableOpacity>
-
           <TouchableOpacity style={style.roleCard} onPress={() => onNavigateToRegister && onNavigateToRegister('responsavel')}>
             <View style={style.roleCardLeft}>
               <Text style={style.roleCardLabel}>Sou</Text>

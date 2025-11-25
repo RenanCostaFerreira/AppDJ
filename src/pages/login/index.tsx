@@ -9,11 +9,12 @@ import { Input } from '../../components/input';
 import { Button } from '../../components/Button';
 
 type Props = {
-    onNavigateToRegister?: () => void,
+    initialMode?: 'form' | 'select',
+    onNavigateToRegister?: (role?: 'funcionario' | 'responsavel' | 'aluno') => void,
     onAuthSuccess?: (user: {name:string,email:string}) => void
 }
 
-export default function Login({ onNavigateToRegister, onAuthSuccess }: Props) {
+export default function Login({ initialMode = 'form', onNavigateToRegister, onAuthSuccess }: Props) {
     const [email, setEmail] = React.useState('');
     const [password, setPassword] = React.useState('');
     const [showPassword, setShowPassword] = React.useState(true);
@@ -97,7 +98,7 @@ export default function Login({ onNavigateToRegister, onAuthSuccess }: Props) {
                     onPress={getLogin}
                 />
             </View>
-            <Text style={style.textBottom}>Não tem conta? <Text style={{ color: themes.colors.primary }} onPress={onNavigateToRegister}>Crie agora!</Text></Text>
+            <Text style={style.textBottom}>Não tem conta? <Text style={{ color: themes.colors.primary }} onPress={() => onNavigateToRegister && onNavigateToRegister()}>Crie agora!</Text></Text>
 
             {/* Cursos só disponíveis após login */}
         </View>
