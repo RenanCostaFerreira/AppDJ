@@ -3,10 +3,12 @@ import { Text, View, Image, TouchableOpacity, Alert } from 'react-native';
 import { style } from './styles';
 import Logo from '../../assets/wrath.png';
 import { MaterialIcons, Octicons } from '@expo/vector-icons';
-import { onlyDigits, formatCPF, validateCPF } from '../../utils/cpf';
+import { onlyDigits, formatCPF } from '../../utils/cpf';
 import { themes } from '../../global/themes';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Input } from '../../components/input';
+// safe digits helper for optional fields
+function safeDigits(v?: string) { return (v ?? '').replace(/\D/g, ''); }
 import { User } from '../../types/user';
 import { Button } from '../../components/Button';
 
@@ -28,17 +30,22 @@ export default function Login({ initialMode = 'form', loginRole, onNavigateToReg
         try {
             setLoading(true)
 
+            const typedCpf = onlyDigits(cpf);
+            const typedEmail = (email ?? '').toLowerCase();
+
             if (loginRole === 'responsavel' || loginRole === 'aluno') {
                 if (!cpf || !password) {
                     setLoading(false);
                     Alert.alert('Atenção!', 'Por favor, preencha CPF e senha.');
                     return;
                 }
-                if (!validateCPF(onlyDigits(cpf))) {
+                // require a completed CPF (11 digits); if checksum fails we'll still try login as a fallback
+                if (typedCpf.length < 11) {
                     setLoading(false);
-                    Alert.alert('Atenção!', 'CPF inválido.');
+                    Alert.alert('Atenção!', 'Por favor, informe o CPF completo (11 dígitos).');
                     return;
                 }
+                // Do not enforce checksum validation for CPF login: require only digits length 11.
             } else {
                 if (!email || !password) {
                     setLoading(false);
@@ -52,9 +59,24 @@ export default function Login({ initialMode = 'form', loginRole, onNavigateToReg
                     // check stored users first
                                         const usersRaw = await AsyncStorage.getItem('users');
                                         const users = usersRaw ? JSON.parse(usersRaw) : [];
-                                        const found = (loginRole === 'responsavel' || loginRole === 'aluno')
-                                            ? users.find((u: any) => u.role === loginRole && onlyDigits(u.cpf) === onlyDigits(cpf) && u.password === password)
-                                            : users.find((u: any) => u.email === email && u.password === password);
+                                        console.log('Login attempt', { loginRole, typedCpf, typedEmail, password, usersCount: users.length });
+                                        // find a user by role+cpf first, then fallback to any user with matching cpf or email
+                                        let found: any = null;
+                                        if (loginRole === 'responsavel' || loginRole === 'aluno') {
+                                            // primary: correct role + cpf
+                                            found = users.find((u: any) => u.role === loginRole && safeDigits(u.cpf) === typedCpf && (u.password ?? '') === password);
+                                            if (!found) {
+                                                // fallback 1: any role with matching CPF
+                                                found = users.find((u: any) => safeDigits(u.cpf) === typedCpf && (u.password ?? '') === password);
+                                            }
+                                            if (!found) {
+                                                // fallback 2: maybe the user typed a value that looks like a CPF but the account uses email; try email+password
+                                                found = users.find((u: any) => (u.email ?? '').toLowerCase() === typedEmail && (u.password ?? '') === password);
+                                            }
+                                        } else {
+                                            found = users.find((u: any) => (u.email ?? '').toLowerCase() === typedEmail && (u.password ?? '') === password);
+                                        }
+                                        console.log('Login found:', found);
                     if (found) {
                         Alert.alert('Logado com sucesso!');
                         if (onAuthSuccess) onAuthSuccess(found as User);
@@ -63,7 +85,13 @@ export default function Login({ initialMode = 'form', loginRole, onNavigateToReg
                         Alert.alert('Logado com sucesso!');
                         if (onAuthSuccess) onAuthSuccess({name: 'Rc', email});
                     } else {
-                        Alert.alert('Usuário não encontrado!');
+                        // Provide more specific feedback if CPF existed but password mismatch
+                        const cpfMatch = users.find((u: any) => safeDigits(u.cpf) === typedCpf);
+                        if (cpfMatch) {
+                            Alert.alert('Erro', 'CPF encontrado, porém a senha está incorreta.');
+                        } else {
+                            Alert.alert('Usuário não encontrado!');
+                        }
                     }
                 } catch (err) {
                     console.log('login check error', err);

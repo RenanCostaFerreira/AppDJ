@@ -1,9 +1,9 @@
 import React from 'react';
-import { View, Text, Image, Alert, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, Image, Alert, TouchableOpacity, StyleSheet, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
 import { style } from './styles';
 import Logo from '../../assets/wrath.png';
 import { Input } from '../../components/input';
-import { onlyDigits, formatCPF, validateCPF } from '../../utils/cpf';
+import { onlyDigits, formatCPF } from '../../utils/cpf';
 import { Button } from '../../components/Button';
 import { Octicons, MaterialIcons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -55,7 +55,6 @@ export default function Register({ onNavigateToLogin, onAuthSuccess, role }: Pro
             }
 
             if (password.length < 6) {
-                setLoading(false);
                 setPasswordError('Senha muito curta, mínimo 6 caracteres');
                 Alert.alert('Senha inválida!', 'Senha muito curta, mínimo 6 caracteres');
                 return;
@@ -74,13 +73,13 @@ export default function Register({ onNavigateToLogin, onAuthSuccess, role }: Pro
                 return;
             }
 
-            // CPF validation for responsavel and aluno (using checksum)
-            if ((role === 'responsavel' || role === 'aluno' || cpf.length <11)) {
+            // CPF validation for responsavel and aluno: require 11 digits (do not enforce checksum)
+            if ((role === 'responsavel' || role === 'aluno') ) {
                 const digits = onlyDigits(cpf);
-                if (!validateCPF(digits)) {
+                if (digits.length < 11) {
                     setLoading(false);
-                    setCpfError('CPF inválido');
-                    Alert.alert('CPF inválido', 'Por favor, informe um CPF válido.');
+                    setCpfError('CPF incompleto');
+                    Alert.alert('Atenção!', 'Por favor, informe o CPF completo (11 dígitos).');
                     return;
                 }
                 setCpfError('');
@@ -118,12 +117,15 @@ export default function Register({ onNavigateToLogin, onAuthSuccess, role }: Pro
             console.log(error);
             setLoading(false);
         }
+        
     }
 
     const roleLabel = role === 'aluno' ? 'Estudante' : role === 'funcionario' ? 'Servidor' : role === 'responsavel' ? 'Responsável' : '';
 
     return (
-        <View style={style.container}>
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
+            <ScrollView contentContainerStyle={{ flexGrow: 1 }} keyboardShouldPersistTaps="handled">
+                <View style={style.container}>
             <TouchableOpacity onPress={onNavigateToLogin} style={localStyles.backButton}>
                 <Text style={localStyles.backIcon}>{'‹'}</Text>
             </TouchableOpacity>
@@ -189,7 +191,9 @@ export default function Register({ onNavigateToLogin, onAuthSuccess, role }: Pro
 
 
             {/* Cursos só disponíveis após login */}
-        </View>
+                </View>
+            </ScrollView>
+        </KeyboardAvoidingView>
     );
 }
 

@@ -9,8 +9,8 @@ export const style = StyleSheet.create({
   button: { backgroundColor: themes.colors.primary, padding: 12, borderRadius: 8, alignItems: 'center' },
   buttonText: { color: '#fff', fontWeight: '700' }
   ,
-  socialRow: { flexDirection: 'row', alignItems: 'center', padding: 10, borderRadius: 8, backgroundColor: '#444', marginBottom: 8 },
-  socialIconWrap: { width: 36, height: 36, borderRadius: 18, backgroundColor: themes.colors.primary, alignItems: 'center', justifyContent: 'center', marginRight: 12 },
-  socialText: { color: '#fff', fontWeight: '700' }
+  socialRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 14, paddingHorizontal: 16, borderRadius: 12, backgroundColor: '#444', marginBottom: 12 },
+  socialIconWrap: { width: 44, height: 44, borderRadius: 22, backgroundColor: themes.colors.primary, alignItems: 'center', justifyContent: 'center', marginRight: 16 },
+  socialText: { color: '#fff', fontWeight: '700', fontSize: 16 }
 });
 export default style;

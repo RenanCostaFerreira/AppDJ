@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, Image, Alert, Platform, TextInput } from 'react-native';
 import { style } from './styles';
-import { formatCPF, onlyDigits, validateCPF } from '../../utils/cpf';
+import { formatCPF, onlyDigits } from '../../utils/cpf';
 import { Input } from '../../components/input';
 import { User } from '../../types/user';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -136,8 +136,8 @@ export default function Profile({ user, onBack, onLogout, onUpdateUser }: Props)
   async function saveCpf(newCpf: string) {
     if (!user?.email) return;
     const digits = onlyDigits(newCpf);
-    if (!validateCPF(digits)) {
-      Alert.alert('CPF inválido', 'Por favor, informe um CPF válido.');
+    if (digits.length < 11) {
+      Alert.alert('Atenção!', 'Por favor, informe o CPF completo (11 dígitos).');
       return;
     }
     try {
