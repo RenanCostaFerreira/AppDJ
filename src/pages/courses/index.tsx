@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, FlatList, TouchableOpacity, Image, Alert, TouchableWithoutFeedback, TextInput } from 'react-native';
 import { style } from './styles';
 import Logo from '../../assets/wrath.png';
+import { MaterialIcons } from '@expo/vector-icons';
 import { sampleCourses } from '../../data/courses';
 import { Course } from '../../types/course';
 import { themes } from '../../global/themes';
@@ -91,7 +92,6 @@ export default function Courses({ onBack, onOpenCourse, onOpenFavorites, onOpenP
           <Text style={{color:'red',marginTop:4}}>Nenhum curso encontrado.</Text>
         )}
       </View>
-
       {menuVisible && (
         <>
           <TouchableOpacity style={style.overlayBackground} activeOpacity={1} onPress={() => setMenuVisible(false)} />
@@ -147,20 +147,20 @@ export default function Courses({ onBack, onOpenCourse, onOpenFavorites, onOpenP
       />
       {/* Bottom navigation bar */}
       <View style={style.bottomNav}>
-        <TouchableOpacity style={style.navItem}>
-          <Image source={Logo} style={{ width: 20, height: 20, tintColor: themes.colors.primary }} />
+        <TouchableOpacity style={style.navItem} onPress={() => { if (onBack) onBack(); }}>
+          <MaterialIcons name="home" size={24} color={themes.colors.primary} />
           <Text style={style.navText}>Home</Text>
         </TouchableOpacity>
         <TouchableOpacity style={style.navItem} onPress={() => onOpenDiscover && onOpenDiscover()}>
-          <Image source={Logo} style={{ width: 20, height: 20 }} />
+          <MaterialIcons name="search" size={24} color={themes.colors.primary} />
           <Text style={style.navText}>Descubra</Text>
         </TouchableOpacity>
         <TouchableOpacity style={style.navItem} onPress={onOpenFavorites}>
-          <Image source={Logo} style={{ width: 20, height: 20 }} />
+          <MaterialIcons name="star" size={24} color={themes.colors.primary} />
           <Text style={style.navText}>Favoritos</Text>
         </TouchableOpacity>
         <TouchableOpacity style={style.navItem} onPress={() => onOpenProfile && onOpenProfile()}>
-          <Image source={Logo} style={{ width: 20, height: 20 }} />
+          <MaterialIcons name="person" size={24} color={themes.colors.primary} />
           <Text style={style.navText}>Meu Perfil</Text>
         </TouchableOpacity>
       </View>
