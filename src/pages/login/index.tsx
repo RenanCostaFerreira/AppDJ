@@ -19,7 +19,7 @@ type Props = {
     onAuthSuccess?: (user: User) => void
 }
 
-export default function Login({ initialMode = 'form', loginRole, onNavigateToRegister, onAuthSuccess }: Props) {
+export default function Login({ initialMode = 'form', loginRole, onNavigateToRegister, onAuthSuccess, onOpenAdmin }: Props & { onOpenAdmin?: () => void }) {
     const [email, setEmail] = React.useState('');
     const [cpf, setCpf] = React.useState('');
     const [password, setPassword] = React.useState('');
@@ -109,6 +109,9 @@ export default function Login({ initialMode = 'form', loginRole, onNavigateToReg
 
     return (
         <View style={style.container}>
+            <TouchableOpacity onPress={() => onOpenAdmin && onOpenAdmin()} style={{ position: 'absolute', right: 12, top: 18, zIndex: 40 }}>
+                <Text style={{ color: themes.colors.primary, fontWeight: '700' }}>ADM</Text>
+            </TouchableOpacity>
             <View style={style.BoxTop}>
                 <Image
                     source={Logo}

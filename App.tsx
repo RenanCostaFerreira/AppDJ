@@ -10,10 +10,11 @@ import CourseDetail from './src/pages/courseDetail';
 import Favorites from './src/pages/favorites';
 import Profile from './src/pages/profile';
 import Discover from './src/pages/discover';
+import Admin from './src/pages/admin';
 import { ThemeProvider } from './src/global/ThemeContext';
 import { Alert, Platform } from 'react-native';
 // removed duplicate stray import
-type Page = 'login' | 'loginForm' | 'register' | 'courses' | 'courseDetail' | 'profile' | 'favorites' | 'discover';
+type Page = 'login' | 'loginForm' | 'register' | 'courses' | 'courseDetail' | 'profile' | 'favorites' | 'discover' | 'admin';
 type Course = {
   id: string;
   title: string;
@@ -155,10 +156,10 @@ export default function App() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <ThemeProvider>
       {page === 'login' && (
-        <Welcome onNavigateToRegister={(role?: 'funcionario'|'responsavel'|'aluno') => { setRegisterRole(role); setPage('register'); }} onNavigateToLogin={(role?: 'funcionario'|'responsavel'|'aluno') => { setRegisterRole(role); setPage('loginForm'); }} />
+        <Welcome onNavigateToRegister={(role?: 'funcionario'|'responsavel'|'aluno') => { setRegisterRole(role); setPage('register'); }} onNavigateToLogin={(role?: 'funcionario'|'responsavel'|'aluno') => { setRegisterRole(role); setPage('loginForm'); }} onOpenAdmin={() => setPage('admin')} />
       )}
       {page === 'loginForm' && (
-        <Login initialMode='form' loginRole={registerRole} onNavigateToRegister={(role?: 'funcionario'|'responsavel'|'aluno') => { setRegisterRole(role); setPage('register'); }} onAuthSuccess={handleAuthSuccess} />
+        <Login initialMode='form' loginRole={registerRole} onNavigateToRegister={(role?: 'funcionario'|'responsavel'|'aluno') => { setRegisterRole(role); setPage('register'); }} onAuthSuccess={handleAuthSuccess} onOpenAdmin={() => setPage('admin')} />
       )}
       {page === 'register' && (
         <Register role={registerRole} onNavigateToLogin={() => { setRegisterRole(undefined); setPage('login'); }} onAuthSuccess={(user) => { setRegisterRole(undefined); handleAuthSuccess(user); }} />
@@ -178,6 +179,9 @@ export default function App() {
       {page === 'profile' && (
         <Profile user={currentUser} onBack={() => setPage('courses')} onLogout={handleLogout} onUpdateUser={handleUpdateUser} />
       )}
+        {page === 'admin' && (
+          <Admin onBack={() => setPage('login')} />
+        )}
       </ThemeProvider>
     </GestureHandlerRootView>
   );
