@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, FlatList, TouchableOpacity, Image, Alert, TouchableWithoutFeedback, TextInput } from 'react-native';
+import ScreenContainer from '../../components/ScreenContainer';
 import { style } from './styles';
 import Logo from '../../assets/wrath.png';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -41,7 +42,8 @@ export default function Courses({ onBack, onOpenCourse, onOpenFavorites, onOpenP
   }
 
   return (
-    <View style={style.container}>
+    <ScreenContainer style={{ backgroundColor: themes.colors.bgScreen }}>
+      <View style={style.container}>
       {/* Header row: use existing header style to ensure horizontal layout */}
       <View style={style.header}>
         <View style={style.headerCenter}>
@@ -164,6 +166,7 @@ export default function Courses({ onBack, onOpenCourse, onOpenFavorites, onOpenP
           <Text style={style.navText}>Meu Perfil</Text>
         </TouchableOpacity>
       </View>
-    </View>
+      </View>
+    </ScreenContainer>
   );
 }

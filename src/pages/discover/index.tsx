@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, ActivityIndicator, FlatList, Linking, Alert } from 'react-native';
+import ScreenContainer from '../../components/ScreenContainer';
 import { style } from './styles';
 import { FontAwesome, FontAwesome5, MaterialIcons } from '@expo/vector-icons';
 import { copyText } from '../../utils/clipboard';
@@ -175,7 +176,8 @@ export default function Discover({ onBack }: Props) {
   }
 
   return (
-    <View style={style.container}>
+    <ScreenContainer style={{ backgroundColor: '#fff' }}>
+      <View style={style.container}>
       {loading ? (
         <ActivityIndicator size="large" color={themes.colors.primary} />
       ) : (
@@ -242,6 +244,7 @@ export default function Discover({ onBack }: Props) {
           )}
         </>
       )}
-    </View>
+      </View>
+    </ScreenContainer>
   );
 }
