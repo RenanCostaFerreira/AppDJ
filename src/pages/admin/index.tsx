@@ -3,14 +3,18 @@ import { View, Text, TouchableOpacity, Alert, FlatList, TextInput, Modal, Keyboa
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { style } from './styles';
 import BackButton from '../../components/BackButton';
+import LayoutToggle from '../../components/LayoutToggle';
+import { useLayout } from '../../global/LayoutContext';
 import { themes } from '../../global/themes';
 import { User } from '../../types/user';
+import { Course } from '../../types/course';
 import Turma from '../../types/turma';
 import { sampleCourses } from '../../data/courses';
 
 type Props = { onBack?: () => void; onClassesUpdated?: () => void };
 
 export default function Admin({ onBack, onClassesUpdated }: Props) {
+  const { mode } = useLayout();
   const [users, setUsers] = React.useState<User[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [authenticated, setAuthenticated] = React.useState(false);
@@ -19,7 +23,9 @@ export default function Admin({ onBack, onClassesUpdated }: Props) {
   // classes (turmas)
   const [classes, setClasses] = React.useState<Turma[]>([]);
   const [classModalVisible, setClassModalVisible] = React.useState(false);
-  const [coursePickerVisible, setCoursePickerVisible] = React.useState(false);
+  // legacy inline picker removed - use courseSelectModalVisible instead
+  const [courseSelectModalVisible, setCourseSelectModalVisible] = React.useState(false);
+  const [courseListModalVisible, setCourseListModalVisible] = React.useState(false);
   const [editingClass, setEditingClass] = React.useState<Turma | null>(null);
   const [formName, setFormName] = React.useState('');
   const [formCourse, setFormCourse] = React.useState('');
@@ -27,6 +33,8 @@ export default function Admin({ onBack, onClassesUpdated }: Props) {
   const [formProfessor, setFormProfessor] = React.useState('');
   const [formVacancies, setFormVacancies] = React.useState('');
   const [formSchedule, setFormSchedule] = React.useState('');
+  const [candidateModalVisible, setCandidateModalVisible] = React.useState(false);
+  const [selectedClassForCandidates, setSelectedClassForCandidates] = React.useState<Turma | null>(null);
 
   React.useEffect(() => {
     (async () => {
@@ -96,11 +104,46 @@ export default function Admin({ onBack, onClassesUpdated }: Props) {
     }
   }
 
+  async function removeStudentFromClass(classId: string, studentEmail: string) {
+    try {
+      const raw = await AsyncStorage.getItem('classes');
+      const list: Turma[] = raw ? JSON.parse(raw) : [];
+      const idx = list.findIndex(c => c.id === classId);
+      if (idx === -1) return;
+      const turma = list[idx];
+      turma.students = (turma.students || []).filter(s => s !== studentEmail);
+      // restore a vacancy
+      turma.vacancies = (turma.vacancies ?? 0) + 1;
+      list[idx] = turma;
+      await AsyncStorage.setItem('classes', JSON.stringify(list));
+      setClasses(list);
+      // update selected class reference if open
+      if (selectedClassForCandidates && selectedClassForCandidates.id === classId) {
+        setSelectedClassForCandidates(list[idx]);
+      }
+      Alert.alert('Aluno removido', `${studentEmail} removido da turma.`);
+      if (typeof onClassesUpdated === 'function') onClassesUpdated();
+    } catch (err) {
+      Alert.alert('Erro ao remover aluno');
+    }
+  }
+
   function openNewClassModal() {
     setEditingClass(null);
     setFormName('');
     setFormCourse('');
     setFormCourseId(undefined);
+    setFormProfessor('');
+    setFormVacancies('');
+    setFormSchedule('');
+    setClassModalVisible(true);
+  }
+
+  function openNewClassModalWithCourse(c: Course) {
+    setEditingClass(null);
+    setFormName('');
+    setFormCourse(c.title);
+    setFormCourseId(c.id);
     setFormProfessor('');
     setFormVacancies('');
     setFormSchedule('');
@@ -161,6 +204,9 @@ export default function Admin({ onBack, onClassesUpdated }: Props) {
   return (
     <View style={[{ flex: 1, padding: 20, backgroundColor: '#fff' }]}>
       <BackButton onPress={() => onBack && onBack()} label="Voltar" />
+      <View style={{ position: 'absolute', right: 12, top: 36 }}>
+        <LayoutToggle />
+      </View>
       <Text style={{ fontSize: 22, fontWeight: '700', color: themes.colors.primary, marginTop: 8 }}>Admin</Text>
       <Text style={{ color: '#666', marginBottom: 12 }}>Painel administrativo</Text>
 
@@ -214,47 +260,47 @@ export default function Admin({ onBack, onClassesUpdated }: Props) {
           <View style={{ marginTop: 24 }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
               <Text style={{ fontWeight: '700' }}>Gestão de Turmas</Text>
-              <TouchableOpacity onPress={openNewClassModal}>
-                <Text style={{ color: themes.colors.primary }}>Nova turma</Text>
-              </TouchableOpacity>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <TouchableOpacity onPress={() => setCourseListModalVisible(true)} style={{ marginRight: 12 }}>
+                  <Text style={{ color: themes.colors.primary }}>Cursos</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={openNewClassModal}>
+                  <Text style={{ color: themes.colors.primary }}>Nova turma</Text>
+                </TouchableOpacity>
+              </View>
             </View>
 
             <View style={{ marginTop: 8, borderWidth: 1, borderColor: '#eee', borderRadius: 6, overflow: 'hidden' }}>
               {/* table header */}
-              <View style={style.tableHeader}>
-                <Text style={{ flex: 2, fontWeight: '700' }}>Turma</Text>
-                <Text style={{ flex: 1, fontWeight: '700' }}>Curso</Text>
-                <Text style={{ width: 80, textAlign: 'center', fontWeight: '700' }}>Vagas</Text>
-                <Text style={{ flex: 1, fontWeight: '700' }}>Professor</Text>
-                <Text style={{ flex: 1, fontWeight: '700' }}>Horário</Text>
-                <Text style={{ width: 120, textAlign: 'center', fontWeight: '700' }}>Ações</Text>
-              </View>
+              {/* Use a more mobile-friendly list (cards) */}
               <FlatList
                 data={classes}
                 keyExtractor={(c) => c.id}
                 ListEmptyComponent={() => <Text style={{ padding: 12, color: '#666' }}>Nenhuma turma cadastrada.</Text>}
                 renderItem={({ item }) => (
-                  <View style={style.tableRow}>
-                    <Text style={{ flex: 2 }}>{item.name}</Text>
-                    <Text style={{ flex: 1 }}>{
-                      // prefer courseId lookup
-                      item.courseId ? (sampleCourses.find(sc => sc.id === item.courseId)?.title ?? item.course ?? '-') : (item.course ?? '-')
-                    }</Text>
-                    <Text style={style.tableCellSmall}>{item.vacancies}</Text>
-                    <Text style={style.tableCell}>{item.professor}</Text>
-                    <Text style={style.tableCell}>{item.schedule}</Text>
-                    <View style={{ width: 120, textAlign: 'right', flexDirection: 'row', justifyContent: 'flex-end' }}>
-                      <TouchableOpacity onPress={() => Alert.alert('Detalhes', `Turma: ${item.name}\nCurso: ${item.course || '-'}\nProfessor: ${item.professor || '-'}\nVagas: ${item.vacancies ?? 0}\nAlunos: ${item.students?.length ?? 0}`)} style={{ marginRight: 12 }}>
-                        <Text style={{ color: '#666' }}>Detalhes</Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity onPress={() => openEditClassModal(item)} style={{ marginRight: 12 }}>
-                        <Text style={{ color: themes.colors.primary }}>Editar</Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity onPress={() => removeClass(item.id)}>
-                        <Text style={{ color: '#ff3b30' }}>Remover</Text>
-                      </TouchableOpacity>
+                    <View style={{ padding: 12, borderBottomWidth: 1, borderColor: '#eee' }}>
+                      <Text style={{ fontWeight: '700' }}>{item.name}</Text>
+                      <Text style={{ color: '#666' }}>{item.courseId ? (sampleCourses.find(sc => sc.id === item.courseId)?.title ?? item.course ?? '-') : (item.course ?? '-')}</Text>
+                      <View style={{ flexDirection: 'row', marginTop: 8, justifyContent: 'space-between' }}>
+                        <Text style={{ color: '#666' }}>{item.professor ?? '-'}</Text>
+                        <Text style={{ color: '#666' }}>{item.schedule ?? '-'}</Text>
+                        <Text style={{ color: '#666' }}>Vagas: {item.vacancies ?? 0} • Matriculados: {item.students?.length ?? 0}</Text>
+                      </View>
+                      <View style={{ flexDirection: 'row', justifyContent: 'flex-end', marginTop: 8 }}>
+                        <TouchableOpacity onPress={() => { setSelectedClassForCandidates(item); setCandidateModalVisible(true); }} style={{ marginRight: 12 }}>
+                          <Text style={{ color: '#666' }}>Candidatos</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity onPress={() => Alert.alert('Detalhes', `Turma: ${item.name}\nCurso: ${item.course || '-'}\nProfessor: ${item.professor || '-'}\nVagas: ${item.vacancies ?? 0}\nAlunos: ${item.students?.length ?? 0}`)} style={{ marginRight: 12 }}>
+                          <Text style={{ color: '#666' }}>Detalhes</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity onPress={() => openEditClassModal(item)} style={{ marginRight: 12 }}>
+                          <Text style={{ color: themes.colors.primary }}>Editar</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity onPress={() => removeClass(item.id)}>
+                          <Text style={{ color: '#ff3b30' }}>Remover</Text>
+                        </TouchableOpacity>
+                      </View>
                     </View>
-                  </View>
                 )}
               />
             </View>
@@ -268,36 +314,124 @@ export default function Admin({ onBack, onClassesUpdated }: Props) {
 
       {/* Class modal form */}
       <Modal visible={classModalVisible} transparent animationType="slide">
-        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-          <View style={{ width: '90%', maxWidth: 480, backgroundColor: '#fff', padding: 16, borderRadius: 8 }}>
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
+          <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 12 }}>
+            <View style={{ width: '100%', maxWidth: 640, backgroundColor: '#fff', padding: 16, borderRadius: 8 }}>
             <Text style={{ fontWeight: '700', marginBottom: 8 }}>{editingClass ? 'Editar Turma' : 'Nova Turma'}</Text>
-            <TextInput value={formName} onChangeText={setFormName} placeholder="Nome da turma" style={{ borderWidth: 1, borderColor: '#ccc', padding: 8, borderRadius: 8, marginBottom: 8 }} />
-            <TouchableOpacity onPress={() => setCoursePickerVisible(prev => !prev)} style={{ borderWidth: 1, borderColor: '#ccc', padding: 8, borderRadius: 8, marginBottom: 8 }}>
+            <ScrollView contentContainerStyle={{ paddingBottom: 8 }}>
+            <TextInput value={formName} onChangeText={setFormName} placeholder="Nome da turma" style={{ borderWidth: 1, borderColor: '#ccc', padding: 12, borderRadius: 8, marginBottom: 8, width: '100%' }} />
+            <TouchableOpacity onPress={() => setCourseSelectModalVisible(true)} style={{ borderWidth: 1, borderColor: '#ccc', padding: 12, borderRadius: 8, marginBottom: 8, width: '100%' }}>
               <Text>{formCourse || 'Selecionar curso'}</Text>
             </TouchableOpacity>
-            {coursePickerVisible && (
-              <ScrollView style={{ maxHeight: 160, borderWidth: 1, borderColor: '#eee', marginBottom: 8 }}>
-                {sampleCourses.map(c => (
-                  <TouchableOpacity key={c.id} style={{ padding: 8 }} onPress={() => { setFormCourseId(c.id); setFormCourse(c.title); setCoursePickerVisible(false); }}>
-                    <Text style={{ color: c.id === formCourseId ? themes.colors.primary : '#333' }}>{c.title}</Text>
+            <Modal visible={courseSelectModalVisible} transparent animationType="slide">
+              <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end' }}>
+                <View style={{ backgroundColor: '#fff', padding: 12, borderTopLeftRadius: 12, borderTopRightRadius: 12, maxHeight: '60%' }}>
+                  <Text style={{ fontWeight: '700', marginBottom: 8 }}>Selecione o curso</Text>
+                  <ScrollView>
+                    {sampleCourses.map(c => (
+                      <TouchableOpacity key={c.id} style={{ paddingVertical: 12, borderBottomWidth: 1, borderColor: '#eee' }} onPress={() => { setFormCourseId(c.id); setFormCourse(c.title); setCourseSelectModalVisible(false); }}>
+                        <Text style={{ color: c.id === formCourseId ? themes.colors.primary : '#333' }}>{c.title}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </ScrollView>
+                  <TouchableOpacity onPress={() => setCourseSelectModalVisible(false)} style={{ marginTop: 12, alignItems: 'center' }}>
+                    <Text style={{ color: themes.colors.primary }}>Fechar</Text>
                   </TouchableOpacity>
-                ))}
-              </ScrollView>
-            )}
-            <TextInput value={formProfessor} onChangeText={setFormProfessor} placeholder="Professor" style={{ borderWidth: 1, borderColor: '#ccc', padding: 8, borderRadius: 8, marginBottom: 8 }} />
-            <TextInput value={formVacancies} onChangeText={setFormVacancies} placeholder="Vagas" keyboardType="numeric" style={{ borderWidth: 1, borderColor: '#ccc', padding: 8, borderRadius: 8, marginBottom: 8 }} />
-            <TextInput value={formSchedule} onChangeText={setFormSchedule} placeholder="Horário" style={{ borderWidth: 1, borderColor: '#ccc', padding: 8, borderRadius: 8, marginBottom: 12 }} />
-            <View style={{ flexDirection: 'row', justifyContent: 'flex-end' }}>
-              <TouchableOpacity onPress={() => setClassModalVisible(false)} style={{ marginRight: 8 }}>
+                </View>
+              </View>
+            </Modal>
+            <TextInput value={formProfessor} onChangeText={setFormProfessor} placeholder="Professor" style={{ borderWidth: 1, borderColor: '#ccc', padding: 12, borderRadius: 8, marginBottom: 8, width: '100%' }} />
+            <TextInput value={formVacancies} onChangeText={setFormVacancies} placeholder="Vagas" keyboardType="numeric" style={{ borderWidth: 1, borderColor: '#ccc', padding: 12, borderRadius: 8, marginBottom: 8, width: '100%' }} />
+            <TextInput value={formSchedule} onChangeText={setFormSchedule} placeholder="Horário" style={{ borderWidth: 1, borderColor: '#ccc', padding: 12, borderRadius: 8, marginBottom: 12, width: '100%' }} />
+              <View style={{ flexDirection: 'row', justifyContent: 'flex-end' }}>
+                <View style={{ flexDirection: 'row', justifyContent: 'flex-end' }}>
+                <TouchableOpacity onPress={() => setClassModalVisible(false)} style={{ marginRight: 8 }}>
                 <Text style={{ color: '#999' }}>Cancelar</Text>
               </TouchableOpacity>
               <TouchableOpacity onPress={saveClass}>
                 <Text style={{ color: themes.colors.primary, fontWeight: '700' }}>Salvar</Text>
               </TouchableOpacity>
+              </View>
             </View>
+            </ScrollView>
+          </View>
           </View>
         </KeyboardAvoidingView>
+      </Modal>
+      {/* Course list modal */}
+      <Modal visible={courseListModalVisible} transparent animationType="slide">
+        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end' }}>
+          <View style={{ backgroundColor: '#fff', padding: 12, borderTopLeftRadius: 12, borderTopRightRadius: 12, maxHeight: '70%' }}>
+            <Text style={{ fontWeight: '700', marginBottom: 8 }}>Cursos</Text>
+            <ScrollView>
+              {sampleCourses.map(c => (
+                <View key={c.id} style={{ paddingVertical: 12, borderBottomWidth: 1, borderColor: '#eee', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <View style={{ flex: 1 }}>
+                    <Text style={{ fontWeight: '700' }}>{c.title}</Text>
+                    <Text style={{ color: '#666' }}>{c.short}</Text>
+                  </View>
+                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                    <TouchableOpacity onPress={() => Alert.alert('Curso', c.description ?? c.title)} style={{ marginRight: 12 }}>
+                      <Text style={{ color: '#666' }}>Detalhes</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={() => { openNewClassModalWithCourse(c); setCourseListModalVisible(false); }}>
+                      <Text style={{ color: themes.colors.primary }}>Criar turma</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              ))}
+            </ScrollView>
+            <TouchableOpacity onPress={() => setCourseListModalVisible(false)} style={{ marginTop: 12, alignItems: 'center' }}>
+              <Text style={{ color: themes.colors.primary }}>Fechar</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Candidates modal */}
+      <Modal visible={candidateModalVisible} transparent animationType="slide">
+        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end' }}>
+          <View style={{ backgroundColor: '#fff', padding: 12, borderTopLeftRadius: 12, borderTopRightRadius: 12, maxHeight: '70%' }}>
+            <Text style={{ fontWeight: '700', marginBottom: 8 }}>Candidatos</Text>
+            <ScrollView>
+              {(selectedClassForCandidates?.students || []).length === 0 ? (
+                <Text style={{ color: '#666', paddingTop: 8 }}>Nenhum candidato inscrito.</Text>
+              ) : (
+                (selectedClassForCandidates?.students || []).map((sEmail) => {
+                  const user = users.find(u => u.email === sEmail);
+                  return (
+                    <View key={sEmail} style={{ paddingVertical: 12, borderBottomWidth: 1, borderColor: '#eee', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <View>
+                        <Text style={{ fontWeight: '700' }}>{user?.name ?? sEmail}</Text>
+                        <Text style={{ color: '#666' }}>{sEmail}</Text>
+                      </View>
+                      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                        <TouchableOpacity style={{ marginRight: 12 }} onPress={() => { Alert.alert('Perfil', user ? `${user.name}\n${user.email}` : sEmail); }}>
+                          <Text style={{ color: '#666' }}>Ver</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity onPress={() => {
+                          Alert.alert('Remover aluno', `Remover ${sEmail} da turma?`, [
+                            { text: 'Cancelar', style: 'cancel' },
+                            { text: 'Remover', style: 'destructive', onPress: () => { if (selectedClassForCandidates) removeStudentFromClass(selectedClassForCandidates.id, sEmail); } }
+                          ]);
+                        }}>
+                          <Text style={{ color: '#ff3b30' }}>Remover</Text>
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+                  );
+                })
+              )}
+            </ScrollView>
+            <TouchableOpacity onPress={() => { setCandidateModalVisible(false); setSelectedClassForCandidates(null); }} style={{ marginTop: 12, alignItems: 'center' }}>
+              <Text style={{ color: themes.colors.primary }}>Fechar</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
       </Modal>
     </View>
   );
 }
+
+// (function moved into component scope)
+            

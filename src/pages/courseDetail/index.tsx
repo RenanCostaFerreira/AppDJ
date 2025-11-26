@@ -1,6 +1,8 @@
 import React from 'react';
 import { View, Text, Image, TouchableOpacity, Alert, FlatList } from 'react-native';
 import BackButton from '../../components/BackButton';
+import LayoutToggle from '../../components/LayoutToggle';
+import { useLayout } from '../../global/LayoutContext';
 import { style } from './styles';
 import { themes } from '../../global/themes';
 import { Course } from '../../types/course';
@@ -17,6 +19,7 @@ type Props = {
   onClassesUpdated?: () => void;
 }
 export default function CourseDetail({ course, onBack, favorites = [], onToggleFavorite, currentUser, classesVersion, onClassesUpdated }: Props) {
+  const { mode } = useLayout();
   const [classes, setClasses] = React.useState<Turma[]>([]);
   React.useEffect(() => {
     (async () => {

@@ -7,6 +7,8 @@ export const style = StyleSheet.create({
   tableRow: { padding: 8, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   tableCell: { flex: 1 },
   tableCellSmall: { width: 80, textAlign: 'center' },
+  classCard: { padding: 12, borderBottomWidth: 1, borderColor: '#eee' },
+  classCell: { color: '#666' },
 });
 
 export default style;

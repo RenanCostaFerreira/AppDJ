@@ -12,6 +12,8 @@ import Profile from './src/pages/profile';
 import Discover from './src/pages/discover';
 import Admin from './src/pages/admin';
 import { ThemeProvider } from './src/global/ThemeContext';
+import { LayoutProvider } from './src/global/LayoutContext';
+import LayoutToggle from './src/components/LayoutToggle';
 import { Alert, Platform } from 'react-native';
 // removed duplicate stray import
 type Page = 'login' | 'loginForm' | 'register' | 'courses' | 'courseDetail' | 'profile' | 'favorites' | 'discover' | 'admin';
@@ -159,15 +161,16 @@ export default function App() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
+      <LayoutProvider>
       <ThemeProvider>
       {page === 'login' && (
         <Welcome onNavigateToRegister={(role?: 'funcionario'|'responsavel'|'aluno') => { setRegisterRole(role); setPage('register'); }} onNavigateToLogin={(role?: 'funcionario'|'responsavel'|'aluno') => { setRegisterRole(role); setPage('loginForm'); }} onOpenAdmin={() => setPage('admin')} />
       )}
       {page === 'loginForm' && (
-        <Login initialMode='form' loginRole={registerRole} onNavigateToRegister={(role?: 'funcionario'|'responsavel'|'aluno') => { setRegisterRole(role); setPage('register'); }} onAuthSuccess={handleAuthSuccess} onOpenAdmin={() => setPage('admin')} />
+        <Login initialMode='form' loginRole={registerRole} onNavigateToRegister={(role?: 'funcionario'|'responsavel'|'aluno') => { setRegisterRole(role); setPage('register'); }} onAuthSuccess={handleAuthSuccess} onOpenAdmin={() => setPage('admin')} onBack={() => setPage('login')} />
       )}
       {page === 'register' && (
-        <Register role={registerRole} onNavigateToLogin={() => { setRegisterRole(undefined); setPage('login'); }} onAuthSuccess={(user) => { setRegisterRole(undefined); handleAuthSuccess(user); }} />
+        <Register role={registerRole} onNavigateToLogin={(role?: 'funcionario'|'responsavel'|'aluno') => { setRegisterRole(role); setPage('loginForm'); }} onAuthSuccess={(user) => { setRegisterRole(undefined); handleAuthSuccess(user); }} />
       )}
       {page === 'courses' && (
         <Courses onBack={() => handleLogout()} onOpenCourse={goToCourseDetail} onOpenFavorites={() => setPage('favorites')} onOpenProfile={() => setPage('profile')} onOpenDiscover={() => setPage('discover')} currentUser={currentUser} favorites={favorites} onToggleFavorite={handleToggleFavorite} onLogout={handleLogout} classesVersion={classesVersion} />
@@ -188,6 +191,7 @@ export default function App() {
           <Admin onBack={() => setPage('login')} onClassesUpdated={handleClassesUpdated} />
         )}
       </ThemeProvider>
+      </LayoutProvider>
     </GestureHandlerRootView>
   );
 }

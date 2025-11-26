@@ -1,10 +1,12 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, ActivityIndicator, FlatList, Linking, Alert } from 'react-native';
 import ScreenContainer from '../../components/ScreenContainer';
+import { useLayout } from '../../global/LayoutContext';
 import BackButton from '../../components/BackButton';
 import { style } from './styles';
 import { FontAwesome, FontAwesome5, MaterialIcons } from '@expo/vector-icons';
 import { copyText } from '../../utils/clipboard';
+import { parseDespertar } from '../../utils/siteParser';
 import { themes } from '../../global/themes';
 
 type Props = {
@@ -45,6 +47,19 @@ export default function Discover({ onBack }: Props) {
 
   React.useEffect(() => {
     (async () => {
+      try {
+        // Use shared parser to fetch networks/contacts
+        const parsed = await parseDespertar();
+        setNetworks(parsed.networks);
+        setContacts(parsed.contacts);
+        setTitle(parsed.title ?? title);
+        setDescription(parsed.description ?? description);
+        setLoading(false);
+        return;
+      } catch (err) {
+        // fallback to fuller parsing when fetch fails
+        console.warn('Discover: fallback to inline parsing', err);
+      }
       try {
         // fetch HTML and try to parse title and first meta description
         const res = await fetch('https://despertar.org.br');
@@ -156,6 +171,7 @@ export default function Discover({ onBack }: Props) {
       }
     })();
   }, []);
+  const { mode } = useLayout();
 
   function openLink(url: string) {
     Linking.canOpenURL(url).then(supported => {
@@ -177,7 +193,7 @@ export default function Discover({ onBack }: Props) {
   }
 
   return (
-    <ScreenContainer style={{ backgroundColor: '#fff' }}>
+    <ScreenContainer style={{ backgroundColor: '#fff' }} useScrollView={false}>
       <View style={style.container}>
       {loading ? (
         <ActivityIndicator size="large" color={themes.colors.primary} />
@@ -213,33 +229,80 @@ export default function Discover({ onBack }: Props) {
             />
           )}
 
-          <Text style={[style.sectionTitle, { marginTop: 8 }]}>Contato</Text>
-          {contacts.length === 0 ? (
-            <Text style={{ color: '#666', marginTop: 8 }}>Nenhum contato encontrado no site.</Text>
+          {mode === 'desktop' ? (
+            <View style={style.desktopRow}>
+              <View style={style.desktopMain}>
+                {networks.length === 0 ? (
+                  <Text style={{ color: '#666', marginTop: 8 }}>Nenhuma rede social encontrada no site.</Text>
+                ) : (
+                  <FlatList
+                    data={networks}
+                    keyExtractor={(item) => item}
+                    renderItem={({ item }) => (
+                      <TouchableOpacity style={style.socialRow} onPress={() => openLink(item)}>
+                        <View style={style.socialIconWrap}>
+                          {(() => {
+                            const { Icon, name } = socialIcon(item);
+                            return <Icon name={name as any} size={22} color="#fff" />;
+                          })()}
+                        </View>
+                        <Text style={style.socialText}>{socialLabel(item)}</Text>
+                      </TouchableOpacity>
+                    )}
+                  />
+                )}
+              </View>
+              <View style={style.desktopSidebar}>
+                <Text style={style.sectionTitle}>Contato</Text>
+                {contacts.length === 0 ? (
+                  <Text style={{ color: '#666', marginTop: 8 }}>Nenhum contato encontrado no site.</Text>
+                ) : (
+                  contacts.map(item => (
+                    <TouchableOpacity key={item} style={style.contactCardDesktop} onPress={() => openLink(item)} onLongPress={() => {
+                      if (item.startsWith('mailto:')) copyToClipboard(item.replace('mailto:', ''));
+                      else if (item.startsWith('tel:')) copyToClipboard(item.replace('tel:', ''));
+                      else if (item.includes('wa.me') || item.includes('whatsapp')) copyToClipboard(item);
+                    }}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <Text style={style.contactTextDesktop}>{socialLabel(item)}</Text>
+                        <MaterialIcons name="content-copy" size={16} color="#666" />
+                      </View>
+                    </TouchableOpacity>
+                  ))
+                )}
+              </View>
+            </View>
           ) : (
-            <FlatList
-              data={contacts}
-              keyExtractor={(item) => item}
-              renderItem={({ item }) => (
-                <TouchableOpacity style={style.socialRow} onPress={() => openLink(item)} onLongPress={() => {
-                  // copy email or phone if available
-                  if (item.startsWith('mailto:')) copyToClipboard(item.replace('mailto:', ''));
-                  else if (item.startsWith('tel:')) copyToClipboard(item.replace('tel:', ''));
-                  else if (item.includes('wa.me') || item.includes('whatsapp')) copyToClipboard(item);
-                }}>
-                  <View style={style.socialIconWrap}>
-                    {(() => {
-                      const { Icon, name } = socialIcon(item);
-                      return <Icon name={name as any} size={22} color="#fff" />;
-                    })()}
-                  </View>
-                  <Text style={style.socialText}>{socialLabel(item)}</Text>
-                  <View style={{ marginLeft: 12 }}>
-                    <MaterialIcons name="content-copy" size={20} color="#fff" />
-                  </View>
-                </TouchableOpacity>
+            <>
+              <Text style={[style.sectionTitle, { marginTop: 8 }]}>Contato</Text>
+              {contacts.length === 0 ? (
+                <Text style={{ color: '#666', marginTop: 8 }}>Nenhum contato encontrado no site.</Text>
+              ) : (
+                <FlatList
+                  data={contacts}
+                  keyExtractor={(item) => item}
+                  renderItem={({ item }) => (
+                    <TouchableOpacity style={style.socialRow} onPress={() => openLink(item)} onLongPress={() => {
+                      // copy email or phone if available
+                      if (item.startsWith('mailto:')) copyToClipboard(item.replace('mailto:', ''));
+                      else if (item.startsWith('tel:')) copyToClipboard(item.replace('tel:', ''));
+                      else if (item.includes('wa.me') || item.includes('whatsapp')) copyToClipboard(item);
+                    }}>
+                      <View style={style.socialIconWrap}>
+                        {(() => {
+                          const { Icon, name } = socialIcon(item);
+                          return <Icon name={name as any} size={22} color="#fff" />;
+                        })()}
+                      </View>
+                      <Text style={style.socialText}>{socialLabel(item)}</Text>
+                      <View style={{ marginLeft: 12 }}>
+                        <MaterialIcons name="content-copy" size={20} color="#fff" />
+                      </View>
+                    </TouchableOpacity>
+                  )}
+                />
               )}
-            />
+            </>
           )}
         </>
       )}

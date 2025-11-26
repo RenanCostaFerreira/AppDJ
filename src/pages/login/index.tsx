@@ -7,6 +7,7 @@ import { onlyDigits, formatCPF } from '../../utils/cpf';
 import { themes } from '../../global/themes';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Input } from '../../components/input';
+import BackButton from '../../components/BackButton';
 // safe digits helper for optional fields
 function safeDigits(v?: string) { return (v ?? '').replace(/\D/g, ''); }
 import { User } from '../../types/user';
@@ -17,9 +18,10 @@ type Props = {
     loginRole?: 'funcionario' | 'responsavel' | 'aluno',
     onNavigateToRegister?: (role?: 'funcionario' | 'responsavel' | 'aluno') => void,
     onAuthSuccess?: (user: User) => void
+    onBack?: () => void
 }
 
-export default function Login({ initialMode = 'form', loginRole, onNavigateToRegister, onAuthSuccess, onOpenAdmin }: Props & { onOpenAdmin?: () => void }) {
+export default function Login({ initialMode = 'form', loginRole, onNavigateToRegister, onAuthSuccess, onOpenAdmin, onBack }: Props & { onOpenAdmin?: () => void }) {
     const [email, setEmail] = React.useState('');
     const [cpf, setCpf] = React.useState('');
     const [password, setPassword] = React.useState('');
@@ -33,19 +35,18 @@ export default function Login({ initialMode = 'form', loginRole, onNavigateToReg
             const typedCpf = onlyDigits(cpf);
             const typedEmail = (email ?? '').toLowerCase();
 
-            if (loginRole === 'responsavel' || loginRole === 'aluno') {
+            if (loginRole === 'responsavel') {
                 if (!cpf || !password) {
                     setLoading(false);
                     Alert.alert('Atenção!', 'Por favor, preencha CPF e senha.');
                     return;
                 }
-                // require a completed CPF (11 digits); if checksum fails we'll still try login as a fallback
+                // require a completed CPF (11 digits)
                 if (typedCpf.length < 11) {
                     setLoading(false);
                     Alert.alert('Atenção!', 'Por favor, informe o CPF completo (11 dígitos).');
                     return;
                 }
-                // Do not enforce checksum validation for CPF login: require only digits length 11.
             } else {
                 if (!email || !password) {
                     setLoading(false);
@@ -62,7 +63,7 @@ export default function Login({ initialMode = 'form', loginRole, onNavigateToReg
                                         console.log('Login attempt', { loginRole, typedCpf, typedEmail, password, usersCount: users.length });
                                         // find a user by role+cpf first, then fallback to any user with matching cpf or email
                                         let found: any = null;
-                                        if (loginRole === 'responsavel' || loginRole === 'aluno') {
+                                        if (loginRole === 'responsavel') {
                                             // primary: correct role + cpf
                                             found = users.find((u: any) => u.role === loginRole && safeDigits(u.cpf) === typedCpf && (u.password ?? '') === password);
                                             if (!found) {
@@ -70,10 +71,18 @@ export default function Login({ initialMode = 'form', loginRole, onNavigateToReg
                                                 found = users.find((u: any) => safeDigits(u.cpf) === typedCpf && (u.password ?? '') === password);
                                             }
                                             if (!found) {
-                                                // fallback 2: maybe the user typed a value that looks like a CPF but the account uses email; try email+password
+                                                // fallback 2: try email+password
+                                                found = users.find((u: any) => (u.email ?? '').toLowerCase() === typedEmail && (u.password ?? '') === password);
+                                            }
+                                        } else if (loginRole === 'aluno') {
+                                            // primary: correct role + email
+                                            found = users.find((u: any) => u.role === loginRole && (u.email ?? '').toLowerCase() === typedEmail && (u.password ?? '') === password);
+                                            if (!found) {
+                                                // fallback: any role with matching email
                                                 found = users.find((u: any) => (u.email ?? '').toLowerCase() === typedEmail && (u.password ?? '') === password);
                                             }
                                         } else {
+                                            // default: email+password
                                             found = users.find((u: any) => (u.email ?? '').toLowerCase() === typedEmail && (u.password ?? '') === password);
                                         }
                                         console.log('Login found:', found);
@@ -85,12 +94,22 @@ export default function Login({ initialMode = 'form', loginRole, onNavigateToReg
                         Alert.alert('Logado com sucesso!');
                         if (onAuthSuccess) onAuthSuccess({name: 'Rc', email});
                     } else {
-                        // Provide more specific feedback if CPF existed but password mismatch
-                        const cpfMatch = users.find((u: any) => safeDigits(u.cpf) === typedCpf);
-                        if (cpfMatch) {
-                            Alert.alert('Erro', 'CPF encontrado, porém a senha está incorreta.');
+                        // Provide more specific feedback: if responsavel tried CPF and found a user with CPF
+                        if (loginRole === 'responsavel') {
+                            const cpfMatch = users.find((u: any) => safeDigits(u.cpf) === typedCpf);
+                            if (cpfMatch) {
+                                Alert.alert('Erro', 'CPF encontrado, porém a senha está incorreta.');
+                            } else {
+                                Alert.alert('Usuário não encontrado!');
+                            }
                         } else {
-                            Alert.alert('Usuário não encontrado!');
+                            // For students and others, check email
+                            const emailMatch = users.find((u: any) => (u.email ?? '').toLowerCase() === typedEmail);
+                            if (emailMatch) {
+                                Alert.alert('Erro', 'E-mail encontrado, porém a senha está incorreta.');
+                            } else {
+                                Alert.alert('Usuário não encontrado!');
+                            }
                         }
                     }
                 } catch (err) {
@@ -109,6 +128,7 @@ export default function Login({ initialMode = 'form', loginRole, onNavigateToReg
 
     return (
         <View style={style.container}>
+            <BackButton onPress={() => onBack && onBack()} style={{ position: 'absolute', left: 12, top: 36, zIndex: 40 }} />
             <TouchableOpacity onPress={() => onOpenAdmin && onOpenAdmin()} style={{ position: 'absolute', right: 12, top: 36, zIndex: 40 }}>
                 <Text style={{ color: themes.colors.primary, fontWeight: '700' }}>ADM</Text>
             </TouchableOpacity>
@@ -119,10 +139,13 @@ export default function Login({ initialMode = 'form', loginRole, onNavigateToReg
                     resizeMode="contain"
                 />
                 <Text style={style.One}>Bem-vindo de volta!</Text>
+                {loginRole && (
+                    <Text style={{ color: '#666', marginTop: 6 }}>{loginRole === 'aluno' ? 'Entrar como Estudante' : loginRole === 'responsavel' ? 'Entrar como Responsável' : loginRole === 'funcionario' ? 'Entrar como Funcionário' : ''}</Text>
+                )}
             </View>
             <View style={style.BoxMid}>
 
-                {loginRole === 'responsavel' || loginRole === 'aluno' ? (
+                {loginRole === 'responsavel' ? (
                     <Input
                         value={formatCPF(cpf)}
                         onChangeText={t => setCpf(onlyDigits(t).slice(0,11))}

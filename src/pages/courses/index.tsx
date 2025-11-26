@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, FlatList, TouchableOpacity, Image, Alert, TouchableWithoutFeedback, TextInput } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, Image, Alert, TouchableWithoutFeedback, TextInput, Linking } from 'react-native';
 import ScreenContainer from '../../components/ScreenContainer';
 import { style } from './styles';
 import Logo from '../../assets/wrath.png';
@@ -8,6 +8,9 @@ import { sampleCourses } from '../../data/courses';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Course } from '../../types/course';
 import { themes } from '../../global/themes';
+import { parseDespertar } from '../../utils/siteParser';
+import { copyText } from '../../utils/clipboard';
+import { useLayout } from '../../global/LayoutContext';
 
 // use shared Course type
 
@@ -32,6 +35,8 @@ export default function Courses({ onBack, onOpenCourse, onOpenFavorites, onOpenP
   const [search, setSearch] = React.useState('');
   const [suggestions, setSuggestions] = React.useState<Course[]>([]);
   const [classes, setClasses] = React.useState<any[]>([]);
+  const [contacts, setContacts] = React.useState<string[]>([]);
+  const { mode } = useLayout();
 
   function handleLogout() {
     setMenuVisible(false);
@@ -54,13 +59,23 @@ export default function Courses({ onBack, onOpenCourse, onOpenFavorites, onOpenP
         console.log('courses: load classes error', err);
       }
     })();
-  }, [classesVersion]);
+    if (mode === 'desktop') {
+      (async () => {
+        try {
+          const parsed = await parseDespertar();
+          setContacts(parsed.contacts);
+        } catch (err) {
+          console.warn('courses: failed to parse site contacts', err);
+        }
+      })();
+    }
+  }, [classesVersion, mode]);
 
   return (
-    <ScreenContainer style={{ backgroundColor: themes.colors.bgScreen }}>
+    <ScreenContainer style={{ backgroundColor: themes.colors.bgScreen }} useScrollView={false}>
       <View style={style.container}>
       {/* Header row: use existing header style to ensure horizontal layout */}
-      <View style={style.header}>
+      <View style={style.header}> 
         <View style={style.headerCenter}>
           <Text style={style.headerGreeting}>Olá, {currentUser?.name ?? 'Você'}</Text>
           <Text style={style.headerTitleSmall}>Conheça nossos cursos!</Text>
@@ -141,8 +156,55 @@ export default function Courses({ onBack, onOpenCourse, onOpenFavorites, onOpenP
       )}
 
       <Text style={style.sectionTitle}>Cursos</Text>
-
-      <FlatList
+      {mode === 'desktop' ? (
+        <View style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
+          <View style={{ flex: 1 }}>
+            <FlatList
+              data={sampleCourses}
+              keyExtractor={item => item.id}
+              contentContainerStyle={style.list}
+              renderItem={({ item }) => {
+                const isFav = (favorites || []).includes(item.id);
+                const courseClasses = classes.filter(cl => (cl.courseId ? cl.courseId === item.id : cl.course === item.title));
+                const classesCount = courseClasses.length;
+                const totalVagas = courseClasses.reduce((acc, c) => acc + (c.vacancies || 0), 0);
+                return (
+                  <TouchableOpacity style={style.card} onPress={() => onOpenCourse(item)}>
+                    <Image source={item.image} style={[style.cardImage, { width: 80, height: 80, alignSelf: 'center' }]} resizeMode="contain" />
+                    <View style={style.cardBody}>
+                      <View style={style.cardHeader}>
+                        <Text style={style.cardTitle}>{item.title}</Text>
+                      </View>
+                      <Text style={style.cardShort}>{item.short}</Text>
+                      <Text style={{ color: '#666', marginTop: 4 }}>{classesCount} turma{classesCount !== 1 ? 's' : ''} • Vagas: {totalVagas}</Text>
+                    </View>
+                  </TouchableOpacity>
+                );
+              }}
+            />
+          </View>
+          <View style={{ width: 320, paddingLeft: 12, borderLeftWidth: 1, borderColor: '#eee' }}>
+            <Text style={{ fontWeight: '700', marginBottom: 8 }}>Contato</Text>
+            {contacts.length === 0 ? (
+              <Text style={{ color: '#666' }}>Nenhum contato encontrado.</Text>
+            ) : (
+              contacts.map(item => (
+                <TouchableOpacity key={item} style={{ padding: 12, borderRadius: 8, borderWidth: 1, borderColor: '#eee', marginBottom: 8, backgroundColor: '#fff' }} onPress={() => Linking.openURL(item)} onLongPress={() => {
+                  if (item.startsWith('mailto:')) copyText(item.replace('mailto:', ''));
+                  else if (item.startsWith('tel:')) copyText(item.replace('tel:', ''));
+                  else if (item.includes('wa.me') || item.includes('whatsapp')) copyText(item);
+                }}>
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                    <Text style={{ fontWeight: '700' }}>{item.replace('mailto:', '').replace('tel:', '')}</Text>
+                    <MaterialIcons name="content-copy" size={18} color="#666" />
+                  </View>
+                </TouchableOpacity>
+              ))
+            )}
+          </View>
+        </View>
+      ) : (
+        <FlatList
         data={sampleCourses}
         keyExtractor={item => item.id}
         contentContainerStyle={style.list}
@@ -162,10 +224,18 @@ export default function Courses({ onBack, onOpenCourse, onOpenFavorites, onOpenP
                 <Text style={style.cardShort}>{item.short}</Text>
                 <Text style={{ color: '#666', marginTop: 4 }}>{classesCount} turma{classesCount !== 1 ? 's' : ''} • Vagas: {totalVagas}</Text>
               </View>
+              {mode === 'desktop' && (
+                <View style={{ marginLeft: 12, alignItems: 'flex-end' }}>
+                  <Text style={{ color: '#666', fontSize: 12 }}>{
+                    `${classes.filter(cl => (cl.courseId ? cl.courseId === item.id : cl.course === item.title)).length} turma(s)`
+                  }</Text>
+                </View>
+              )}
             </TouchableOpacity>
           );
         }}
       />
+      )}
       {/* Bottom navigation bar */}
       <View style={style.bottomNav}>
         <TouchableOpacity style={style.navItem} onPress={() => { if (onBack) onBack(); }}>

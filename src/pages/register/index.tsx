@@ -11,7 +11,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { themes } from '../../global/themes';
 import { User } from '../../types/user';
 type Props = {
-    onNavigateToLogin?: () => void,
+    onNavigateToLogin?: (role?: 'funcionario' | 'responsavel' | 'aluno') => void,
     onAuthSuccess?: (user: User) => void,
     role?: 'funcionario' | 'responsavel' | 'aluno'
 }
@@ -186,6 +186,9 @@ export default function Register({ onNavigateToLogin, onAuthSuccess, role }: Pro
                     loading={loading}
                     onPress={handleRegister}
                 />
+            </View>
+            <View style={{ alignItems: 'center', marginTop: 8 }}>
+                <Text style={{ color: themes.colors.primary }} onPress={() => onNavigateToLogin && onNavigateToLogin(role)}>{'Já tem conta? Entrar'}</Text>
             </View>
 
 
