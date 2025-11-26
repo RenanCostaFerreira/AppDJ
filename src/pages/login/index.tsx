@@ -109,7 +109,7 @@ export default function Login({ initialMode = 'form', loginRole, onNavigateToReg
 
     return (
         <View style={style.container}>
-            <TouchableOpacity onPress={() => onOpenAdmin && onOpenAdmin()} style={{ position: 'absolute', right: 12, top: 18, zIndex: 40 }}>
+            <TouchableOpacity onPress={() => onOpenAdmin && onOpenAdmin()} style={{ position: 'absolute', right: 12, top: 36, zIndex: 40 }}>
                 <Text style={{ color: themes.colors.primary, fontWeight: '700' }}>ADM</Text>
             </TouchableOpacity>
             <View style={style.BoxTop}>
