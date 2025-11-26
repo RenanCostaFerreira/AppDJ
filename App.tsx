@@ -31,6 +31,7 @@ export default function App() {
   const [currentUser, setCurrentUser] = React.useState<User | null>(null);
   const [favorites, setFavorites] = React.useState<string[]>([]);
   const [registerRole, setRegisterRole] = React.useState<'funcionario'|'responsavel'|'aluno' | undefined>(undefined);
+  const [classesVersion, setClassesVersion] = React.useState(0);
 
   // load favorites for current user
   async function loadFavoritesFor(userEmail?: string) {
@@ -152,6 +153,10 @@ export default function App() {
     })();
   }
 
+  function handleClassesUpdated() {
+    setClassesVersion(v => v + 1);
+  }
+
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <ThemeProvider>
@@ -165,13 +170,13 @@ export default function App() {
         <Register role={registerRole} onNavigateToLogin={() => { setRegisterRole(undefined); setPage('login'); }} onAuthSuccess={(user) => { setRegisterRole(undefined); handleAuthSuccess(user); }} />
       )}
       {page === 'courses' && (
-        <Courses onBack={() => handleLogout()} onOpenCourse={goToCourseDetail} onOpenFavorites={() => setPage('favorites')} onOpenProfile={() => setPage('profile')} onOpenDiscover={() => setPage('discover')} currentUser={currentUser} favorites={favorites} onToggleFavorite={handleToggleFavorite} onLogout={handleLogout} />
+        <Courses onBack={() => handleLogout()} onOpenCourse={goToCourseDetail} onOpenFavorites={() => setPage('favorites')} onOpenProfile={() => setPage('profile')} onOpenDiscover={() => setPage('discover')} currentUser={currentUser} favorites={favorites} onToggleFavorite={handleToggleFavorite} onLogout={handleLogout} classesVersion={classesVersion} />
       )}
       {page === 'discover' && (
         <Discover onBack={() => setPage('courses')} />
       )}
       {page === 'courseDetail' && selectedCourse && (
-        <CourseDetail course={selectedCourse} onBack={() => setPage('courses')} onToggleFavorite={handleToggleFavorite} favorites={favorites} />
+        <CourseDetail course={selectedCourse} onBack={() => setPage('courses')} onToggleFavorite={handleToggleFavorite} favorites={favorites} currentUser={currentUser} classesVersion={classesVersion} onClassesUpdated={handleClassesUpdated} />
       )}
       {page === 'favorites' && (
         <Favorites onBack={() => setPage('courses')} onOpenCourse={goToCourseDetail} favorites={favorites} onToggleFavorite={handleToggleFavorite} />
@@ -180,7 +185,7 @@ export default function App() {
         <Profile user={currentUser} onBack={() => setPage('courses')} onLogout={handleLogout} onUpdateUser={handleUpdateUser} />
       )}
         {page === 'admin' && (
-          <Admin onBack={() => setPage('login')} />
+          <Admin onBack={() => setPage('login')} onClassesUpdated={handleClassesUpdated} />
         )}
       </ThemeProvider>
     </GestureHandlerRootView>

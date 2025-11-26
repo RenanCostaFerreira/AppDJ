@@ -5,6 +5,7 @@ import { style } from './styles';
 import Logo from '../../assets/wrath.png';
 import { MaterialIcons } from '@expo/vector-icons';
 import { sampleCourses } from '../../data/courses';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Course } from '../../types/course';
 import { themes } from '../../global/themes';
 
@@ -20,15 +21,17 @@ type Props = {
   favorites?: string[];
   onToggleFavorite?: (courseId: string) => void;
   onLogout?: () => void;
+  classesVersion?: number;
 }
 
 
 
-export default function Courses({ onBack, onOpenCourse, onOpenFavorites, onOpenProfile, onOpenDiscover, currentUser, favorites = [], onToggleFavorite, onLogout }: Props) {
+export default function Courses({ onBack, onOpenCourse, onOpenFavorites, onOpenProfile, onOpenDiscover, currentUser, favorites = [], onToggleFavorite, onLogout, classesVersion }: Props) {
   const [menuVisible, setMenuVisible] = React.useState(false);
   const [favoritesVisible, setFavoritesVisible] = React.useState(false);
   const [search, setSearch] = React.useState('');
   const [suggestions, setSuggestions] = React.useState<Course[]>([]);
+  const [classes, setClasses] = React.useState<any[]>([]);
 
   function handleLogout() {
     setMenuVisible(false);
@@ -40,6 +43,18 @@ export default function Courses({ onBack, onOpenCourse, onOpenFavorites, onOpenP
     setMenuVisible(false);
     setFavoritesVisible(true);
   }
+
+  React.useEffect(() => {
+    (async () => {
+      try {
+        const raw = await AsyncStorage.getItem('classes');
+        const c = raw ? JSON.parse(raw) : [];
+        setClasses(c);
+      } catch (err) {
+        console.log('courses: load classes error', err);
+      }
+    })();
+  }, [classesVersion]);
 
   return (
     <ScreenContainer style={{ backgroundColor: themes.colors.bgScreen }}>
@@ -133,6 +148,9 @@ export default function Courses({ onBack, onOpenCourse, onOpenFavorites, onOpenP
         contentContainerStyle={style.list}
         renderItem={({ item }) => {
           const isFav = (favorites || []).includes(item.id);
+          const courseClasses = classes.filter(cl => (cl.courseId ? cl.courseId === item.id : cl.course === item.title));
+          const classesCount = courseClasses.length;
+          const totalVagas = courseClasses.reduce((acc, c) => acc + (c.vacancies || 0), 0);
           return (
             <TouchableOpacity style={style.card} onPress={() => onOpenCourse(item)}>
               <Image source={item.image} style={[style.cardImage, { width: 80, height: 80, alignSelf: 'center' }]} resizeMode="contain" />
@@ -142,6 +160,7 @@ export default function Courses({ onBack, onOpenCourse, onOpenFavorites, onOpenP
                 </View>
 
                 <Text style={style.cardShort}>{item.short}</Text>
+                <Text style={{ color: '#666', marginTop: 4 }}>{classesCount} turma{classesCount !== 1 ? 's' : ''} • Vagas: {totalVagas}</Text>
               </View>
             </TouchableOpacity>
           );
