@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, Image, TouchableOpacity, Alert } from 'react-native';
+import BackButton from '../../components/BackButton';
 import { style } from './styles';
 import { Course } from '../../types/course';
 
@@ -24,9 +25,7 @@ export default function CourseDetail({ course, onBack, favorites = [], onToggleF
   return (
     <View style={style.container}>
       <View style={style.header}>
-        <TouchableOpacity onPress={onBack} hitSlop={{ top: 10, left: 10, right: 10, bottom: 10 }}>
-          <Text style={style.backText}>Voltar</Text>
-        </TouchableOpacity>
+        <BackButton onPress={onBack} label="Voltar" />
       </View>
 
       <Image source={course.image} style={style.image} resizeMode="cover" />

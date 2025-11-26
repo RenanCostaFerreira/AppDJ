@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, Image, Alert, TouchableOpacity, StyleSheet, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
+import BackButton from '../../components/BackButton';
 import { style } from './styles';
 import Logo from '../../assets/wrath.png';
 import { Input } from '../../components/input';
@@ -126,9 +127,7 @@ export default function Register({ onNavigateToLogin, onAuthSuccess, role }: Pro
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
             <ScrollView contentContainerStyle={{ flexGrow: 1 }} keyboardShouldPersistTaps="handled">
                 <View style={style.container}>
-            <TouchableOpacity onPress={onNavigateToLogin} style={localStyles.backButton}>
-                <Text style={localStyles.backIcon}>{'‹'}</Text>
-            </TouchableOpacity>
+            <BackButton onPress={onNavigateToLogin} label="" icon={true} style={localStyles.backButton} textStyle={localStyles.backIcon} />
             <View style={style.BoxTop}>
                 <Image source={Logo} style={style.logo} resizeMode="contain" />
                 <Text style={style.One}>{roleLabel ? `Cadastro — ${roleLabel}` : 'Crie sua conta'}</Text>

@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, FlatList, TouchableOpacity, Image } from 'react-native';
+import BackButton from '../../components/BackButton';
 import { style } from './styles';
 import Logo from '../../assets/wrath.png';
 import { sampleCourses } from '../../data/courses';
@@ -21,9 +22,7 @@ export default function Favorites({ onBack, onOpenCourse, favorites = [], onTogg
   return (
     <View style={style.container}>
       <View style={style.header}>
-        <TouchableOpacity onPress={onBack} hitSlop={{ top: 10, left: 10, right: 10, bottom: 10 }}>
-          <Text style={style.backText}>Voltar</Text>
-        </TouchableOpacity>
+        <BackButton onPress={onBack} label="Voltar" />
         <Text style={style.headerTitle}>Favoritos</Text>
         <View style={{ width: 56 }} />
       </View>

@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity, Alert, FlatList, TextInput, Modal } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { style } from './styles';
+import BackButton from '../../components/BackButton';
 import { themes } from '../../global/themes';
 import { User } from '../../types/user';
 
@@ -62,9 +63,7 @@ export default function Admin({ onBack }: Props) {
 
   return (
     <View style={[{ flex: 1, padding: 20, backgroundColor: '#fff' }]}>
-      <TouchableOpacity onPress={() => onBack && onBack()}>
-        <Text style={{ color: themes.colors.primary }}>{'‹ Voltar'}</Text>
-      </TouchableOpacity>
+      <BackButton onPress={() => onBack && onBack()} label="Voltar" />
       <Text style={{ fontSize: 22, fontWeight: '700', color: themes.colors.primary, marginTop: 8 }}>Admin</Text>
       <Text style={{ color: '#666', marginBottom: 12 }}>Painel administrativo</Text>
 

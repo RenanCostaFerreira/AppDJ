@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, Image, Alert, Platform, TextInput } from 'react-native';
+import BackButton from '../../components/BackButton';
 import { style } from './styles';
 import { formatCPF, onlyDigits } from '../../utils/cpf';
 import { Input } from '../../components/input';
@@ -178,9 +179,7 @@ export default function Profile({ user, onBack, onLogout, onUpdateUser }: Props)
   return (
     <View style={style.container}>
       <View style={style.header}>
-        <TouchableOpacity style={style.back} onPress={onBack}>
-          <Text style={{ color: themes.colors.primary }}>Voltar</Text>
-        </TouchableOpacity>
+        <BackButton onPress={onBack} label="Voltar" style={{ marginLeft: 0 }} />
         <TouchableOpacity style={style.logout} onPress={() => Alert.alert('Perfil salvo', 'Suas informações foram salvas com sucesso!')}>
           <Text style={{ color: '#fff' }}>Salvar</Text>
         </TouchableOpacity>

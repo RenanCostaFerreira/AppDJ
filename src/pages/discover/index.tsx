@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, ActivityIndicator, FlatList, Linking, Alert } from 'react-native';
 import ScreenContainer from '../../components/ScreenContainer';
+import BackButton from '../../components/BackButton';
 import { style } from './styles';
 import { FontAwesome, FontAwesome5, MaterialIcons } from '@expo/vector-icons';
 import { copyText } from '../../utils/clipboard';
@@ -182,9 +183,7 @@ export default function Discover({ onBack }: Props) {
         <ActivityIndicator size="large" color={themes.colors.primary} />
       ) : (
         <>
-          <TouchableOpacity onPress={() => onBack && onBack()} style={{ marginBottom: 12 }}>
-            <Text style={{ color: themes.colors.primary }}>‹ Voltar</Text>
-          </TouchableOpacity>
+          <BackButton onPress={() => onBack && onBack()} label="Voltar" />
           <Text style={style.title}>{title ?? 'Despertar'}</Text>
           {description ? <Text style={style.description}>{description}</Text> : null}
 
