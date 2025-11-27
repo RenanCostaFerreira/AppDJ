@@ -18,4 +18,12 @@ export const style = StyleSheet.create({
   email: { color: themes.colors.gray, marginBottom: 16 }
   ,
   infoContainer: { width: '100%', padding: 16, borderRadius: 8, backgroundColor: '#fafafa', marginTop: 12, alignItems: 'center' }
+  ,
+  infoInnerBox: { width: '100%', backgroundColor: 'transparent', borderRadius: 8, paddingVertical: 6, paddingHorizontal: 0, marginBottom: 12 },
+  infoField: { width: '100%', paddingVertical: 0, marginBottom: 8 },
+  profileInputOverride: { height: 40, borderRadius: 8 },
+  infoFieldTitle: { fontSize: 14, fontWeight: '700', textAlign: 'left', marginBottom: 8 },
+  infoFieldValue: { fontSize: 14, color: themes.colors.gray, alignSelf: 'flex-start', paddingLeft: 6 },
+  infoFieldValueName: { fontSize: 16, color: '#222', alignSelf: 'flex-start', paddingLeft: 6 },
+  card: { width: '100%', padding: 16, borderWidth: 1, borderColor: '#eee', borderRadius: 10, backgroundColor: '#fff', alignItems: 'center' }
 });

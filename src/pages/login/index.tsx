@@ -174,13 +174,13 @@ export default function Login({ initialMode = 'form', loginRole, onNavigateToReg
                     onIconRigthPress={() => setShowPassword(!showPassword)}
                 />
 
-            </View>
-            <View style={style.BoxBotton}>
-                <Button 
-                    text='Entrar'
-                    loading={loading}
-                    onPress={getLogin}
-                />
+                <View style={{ marginTop: 12, alignItems: 'center' }}>
+                    <Button 
+                        text='Entrar'
+                        loading={loading}
+                        onPress={getLogin}
+                    />
+                </View>
             </View>
             {loginRole === 'responsavel' || loginRole === 'aluno' ? (
                 <Text style={[style.textBottom, {fontSize: 14}]}>Não tem conta? <Text style={{ color: themes.colors.primary }} onPress={() => onNavigateToRegister && onNavigateToRegister(loginRole)}>{' '}Crie agora!</Text></Text>

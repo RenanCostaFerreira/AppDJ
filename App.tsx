@@ -34,6 +34,7 @@ export default function App() {
   const [favorites, setFavorites] = React.useState<string[]>([]);
   const [registerRole, setRegisterRole] = React.useState<'funcionario'|'responsavel'|'aluno' | undefined>(undefined);
   const [classesVersion, setClassesVersion] = React.useState(0);
+  const [usersVersion, setUsersVersion] = React.useState(0);
 
   // load favorites for current user
   async function loadFavoritesFor(userEmail?: string) {
@@ -152,6 +153,8 @@ export default function App() {
       }
       loadFavoritesFor(user.email);
       setPage('courses');
+      // bump usersVersion so Admin page refreshes if open
+      setUsersVersion(v => v + 1);
     })();
   }
 
@@ -188,7 +191,7 @@ export default function App() {
         <Profile user={currentUser} onBack={() => setPage('courses')} onLogout={handleLogout} onUpdateUser={handleUpdateUser} />
       )}
         {page === 'admin' && (
-          <Admin onBack={() => setPage('login')} onClassesUpdated={handleClassesUpdated} />
+            <Admin onBack={() => setPage('login')} onClassesUpdated={handleClassesUpdated} usersVersion={usersVersion} />
         )}
       </ThemeProvider>
       </LayoutProvider>

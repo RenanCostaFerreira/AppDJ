@@ -176,7 +176,7 @@ export default function Courses({ onBack, onOpenCourse, onOpenFavorites, onOpenP
                         <Text style={style.cardTitle}>{item.title}</Text>
                       </View>
                       <Text style={style.cardShort}>{item.short}</Text>
-                      <Text style={{ color: '#666', marginTop: 4 }}>{classesCount} turma{classesCount !== 1 ? 's' : ''} • Vagas: {totalVagas}</Text>
+                      <Text style={{ color: '#666', marginTop: 4 }}>{classesCount} turma{classesCount !== 1 ? 's' : ''} • {totalVagas <= 0 ? 'Sem vagas' : `Vagas: ${totalVagas}`}</Text>
                     </View>
                   </TouchableOpacity>
                 );
@@ -222,15 +222,15 @@ export default function Courses({ onBack, onOpenCourse, onOpenFavorites, onOpenP
                 </View>
 
                 <Text style={style.cardShort}>{item.short}</Text>
-                <Text style={{ color: '#666', marginTop: 4 }}>{classesCount} turma{classesCount !== 1 ? 's' : ''} • Vagas: {totalVagas}</Text>
+                <Text style={{ color: '#666', marginTop: 4 }}>{classesCount} turma{classesCount !== 1 ? 's' : ''} • {totalVagas <= 0 ? 'Sem vagas' : `Vagas: ${totalVagas}`}</Text>
               </View>
-              {mode === 'desktop' && (
+              {(mode as any) === 'desktop' ? (
                 <View style={{ marginLeft: 12, alignItems: 'flex-end' }}>
                   <Text style={{ color: '#666', fontSize: 12 }}>{
                     `${classes.filter(cl => (cl.courseId ? cl.courseId === item.id : cl.course === item.title)).length} turma(s)`
                   }</Text>
                 </View>
-              )}
+              ) : null}
             </TouchableOpacity>
           );
         }}

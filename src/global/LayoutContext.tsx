@@ -44,13 +44,16 @@ export function LayoutProvider({ children }: { children: React.ReactNode }) {
         setModeState(window.width >= 900 ? 'desktop' : 'mobile');
       }
     };
-    const sub = Dimensions.addEventListener ? Dimensions.addEventListener('change', onChange) : Dimensions.addEventListener('change', onChange as any);
+    // Use safe add/remove to support both RN versions (older: removeEventListener, newer: subscription.remove())
+    let subscription: any = null;
+    if ((Dimensions as any) && typeof (Dimensions as any).addEventListener === 'function') {
+      try { subscription = (Dimensions as any).addEventListener('change', onChange); } catch (e) { /* ignore */ }
+    }
     return () => {
       try {
-        // remove listener
-        if (sub && typeof sub.remove === 'function') sub.remove();
-        else Dimensions.removeEventListener && Dimensions.removeEventListener('change', onChange as any);
-      } catch (e) { }
+        if (subscription && typeof subscription.remove === 'function') subscription.remove();
+        else if (typeof (Dimensions as any).removeEventListener === 'function') (Dimensions as any).removeEventListener('change', onChange as any);
+      } catch (e) { /* ignore */ }
     };
   }, [isAuto]);
 
@@ -61,7 +64,7 @@ export function LayoutProvider({ children }: { children: React.ReactNode }) {
   };
 
   const toggleMode = () => {
-    const next = mode === 'mobile' ? 'desktop' : 'mobile';
+    const next = mode === 'desktop' ? 'mobile' : 'desktop';
     setModeState(next);
     setIsAuto(false);
     AsyncStorage.setItem('layoutMode', next).catch(() => { });

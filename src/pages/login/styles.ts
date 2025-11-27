@@ -17,20 +17,14 @@ export const style = StyleSheet.create({
 
     },
     BoxMid: {
-        height: Dimensions.get('window').height / 4,
         width: '100%',
-        //backgroundColor: 'green',
-        paddingHorizontal: 37
-
+        paddingHorizontal: 37,
+        paddingVertical: 12
     },
     BoxBotton: {
-        height: Dimensions.get('window').height / 3,
         width: '100%',
-        //backgroundColor: 'cyan',
         alignItems: 'center',
-        //justifyContent:'center'
-        marginTop: 40
-
+        marginTop: 12
     },
     logo: {
         width: 150,

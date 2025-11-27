@@ -9,6 +9,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as ImagePicker from 'expo-image-picker';
 import * as DocumentPicker from 'expo-document-picker';
 import { themes } from '../../global/themes';
+import { style as inputStyle } from '../../components/input/style';
 
 type Props = {
   user?: User | null;
@@ -19,12 +20,8 @@ type Props = {
 
 export default function Profile({ user, onBack, onLogout, onUpdateUser }: Props) {
   const [imageUri, setImageUri] = React.useState<string | null>(null);
-  const [name, setName] = React.useState(user?.name ?? '');
-  const [pendingName, setPendingName] = React.useState(user?.name ?? '');
   // email is derived from current user prop; we use it directly from `user` to avoid stale values
   const email = user?.email ?? '';
-  const [showPasswordPrompt, setShowPasswordPrompt] = React.useState(false);
-  const [password, setPassword] = React.useState('');
   const [editingCpf, setEditingCpf] = React.useState(false);
   const [editingRole, setEditingRole] = React.useState(false);
   const [cpfInput, setCpfInput] = React.useState(user?.cpf ?? '');
@@ -150,7 +147,7 @@ export default function Profile({ user, onBack, onLogout, onUpdateUser }: Props)
         await AsyncStorage.setItem('users', JSON.stringify(users));
         if (onUpdateUser) onUpdateUser({ cpf: digits });
         Alert.alert('CPF atualizado', 'Seu CPF foi atualizado com sucesso.');
-        setEditingCpf(false);
+        // leave editing flag control to UI if needed - no-op in read-only mode
       }
     } catch (err) {
       console.error('saveCpf error', err);
@@ -180,12 +177,10 @@ export default function Profile({ user, onBack, onLogout, onUpdateUser }: Props)
     <View style={style.container}>
       <View style={style.header}>
         <BackButton onPress={onBack} label="Voltar" style={{ marginLeft: 0 }} />
-        <TouchableOpacity style={style.logout} onPress={() => Alert.alert('Perfil salvo', 'Suas informações foram salvas com sucesso!')}>
-          <Text style={{ color: '#fff' }}>Salvar</Text>
-        </TouchableOpacity>
       </View>
 
-      <View style={style.avatarWrap}>
+      <View style={style.card}>
+        <View style={style.avatarWrap}>
         {imageUri ? (
           <Image source={{ uri: imageUri }} style={style.avatar} />
         ) : (
@@ -193,69 +188,38 @@ export default function Profile({ user, onBack, onLogout, onUpdateUser }: Props)
             <Text style={style.avatarPlaceholderText}>{(user?.name ?? 'U').charAt(0)}</Text>
           </View>
         )}
-      </View>
+        </View>
 
-      <TouchableOpacity style={style.changePhotoBtn} onPress={pickImage}>
+        <TouchableOpacity style={style.changePhotoBtn} onPress={pickImage}>
         <Text style={style.changePhotoText}>{imageUri ? 'Alterar foto' : 'Adicionar foto'}</Text>
       </TouchableOpacity>
 
-      {imageUri ? (
-        <TouchableOpacity style={style.removePhotoBtn} onPress={removeImage}>
-          <Text style={style.removePhotoText}>Remover foto</Text>
-        </TouchableOpacity>
-      ) : null}
+        {imageUri ? (
+          <TouchableOpacity style={style.removePhotoBtn} onPress={removeImage}>
+            <Text style={style.removePhotoText}>Remover foto</Text>
+          </TouchableOpacity>
+        ) : null}
 
-      <View style={style.infoContainer}>
-        <Text style={style.title}>Nome</Text>
-        <View style={{width:'100%',marginBottom:8}}>
-        <Input
-          value={pendingName}
-          onChangeText={text => {
-            setShowPasswordPrompt(true);
-            setPendingName(text);
-          }}
-          placeholder="Digite seu nome"
-        />
-      </View>
-        <Text style={style.title}>E-mail</Text>
-        <View style={{width:'100%',marginBottom:8}}>
-        <Input
-          value={email}
-          editable={false}
-          keyboardType="email-address"
-        />
-      </View>
+        <View style={style.infoContainer}>
+          <View style={style.infoInnerBox}>
+            <View style={style.infoField}>
+              <Text style={style.infoFieldTitle}>Nome</Text>
+                <View style={[inputStyle.BoxInput, style.profileInputOverride, { marginTop: 6 }]}> 
+                  <Text style={[inputStyle.input, { color: '#222' }]}>{user?.name ?? ''}</Text>
+                </View>
+            </View>
+            <View style={style.infoField}>
+              <Text style={style.infoFieldTitle}>E-mail</Text>
+                <View style={[inputStyle.BoxInput, style.profileInputOverride, { marginTop: 6 }]}> 
+                  <Text style={[inputStyle.input, { color: themes.colors.gray }]}>{email}</Text>
+                </View>
+            </View>
+          </View>
         {(user?.role === 'responsavel' || user?.role === 'aluno') && (
           <>
             <Text style={style.title}>CPF</Text>
             <View style={{width:'100%',marginBottom:8}}>
-              {!editingCpf ? (
-                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                  <Input
-                    value={formatCPF(user?.cpf ?? '')}
-                    editable={false}
-                    keyboardType="numeric"
-                />
-                  <TouchableOpacity style={{ marginLeft: 8 }} onPress={() => { setCpfInput(user?.cpf ?? ''); setEditingCpf(true); }}>
-                    <Text style={{ color: themes.colors.primary }}>Editar</Text>
-                  </TouchableOpacity>
-                </View>
-              ) : (
-                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                  <Input
-                    value={formatCPF(cpfInput)}
-                    onChangeText={(t: string) => setCpfInput(onlyDigits(t).slice(0,11))}
-                    placeholder="CPF"
-                    keyboardType='number-pad'
-                />
-                  <TouchableOpacity style={{ marginLeft: 8 }} onPress={() => saveCpf(cpfInput)}>
-                    <Text style={{ color: themes.colors.primary }}>Salvar</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity style={{ marginLeft: 8 }} onPress={() => setEditingCpf(false)}>
-                    <Text style={{ color: '#999' }}>Cancelar</Text>
-                  </TouchableOpacity>
-                </View>
-              )}
+              <Text style={{ fontSize: 14, color: themes.colors.gray }}>{formatCPF(user?.cpf ?? '')}</Text>
             </View>
           </>
         )}
@@ -263,58 +227,13 @@ export default function Profile({ user, onBack, onLogout, onUpdateUser }: Props)
           <>
             <Text style={style.title}>Perfil</Text>
             <View style={{width:'100%',marginBottom:8}}>
-              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                <Input
-                  value={user?.role ?? ''}
-                  editable={false}
-                />
-                <TouchableOpacity style={{ marginLeft: 8 }} onPress={() => {
-                  Alert.alert('Alterar perfil', undefined, [
-                    { text: 'Aluno', onPress: () => changeRole('aluno') },
-                    { text: 'Servidor', onPress: () => changeRole('funcionario') },
-                    { text: 'Responsável', onPress: () => changeRole('responsavel') },
-                    { text: 'Cancelar', style: 'cancel' }
-                  ]);
-                }}>
-                  <Text style={{ color: themes.colors.primary }}>Alterar</Text>
-                </TouchableOpacity>
-              </View>
+              <Text style={{ fontSize: 14, color: themes.colors.gray }}>{user?.role ?? ''}</Text>
             </View>
           </>
         )}
       </View>
-      {showPasswordPrompt && (
-        <View style={{width:'80%',marginBottom:8}}>
-          <Text style={{marginBottom:4}}>Digite sua senha para alterar o nome:</Text>
-          <TextInput
-            style={{borderWidth:1,borderColor:'#ccc',borderRadius:8,padding:8}}
-            placeholder="Senha"
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry={true}
-          />
-          <TouchableOpacity style={{marginTop:8,backgroundColor:themes.colors.primary,padding:8,borderRadius:8}} onPress={async () => {
-            if (!password || password.length < 6) {
-              Alert.alert('Senha inválida','A senha deve ter pelo menos 6 caracteres.');
-              return;
-            }
-            // Verifica se a senha coincide com a cadastrada
-            let usersRaw = await AsyncStorage.getItem('users');
-            let users = usersRaw ? JSON.parse(usersRaw) : [];
-            let userFound = users.find((u: any) => u.email === (user?.email ?? '') && u.password === password);
-            if (!userFound) {
-              Alert.alert('Erro','A senha não coincide com a adicionada anteriormente');
-              return;
-            }
-            setShowPasswordPrompt(false);
-            setName(pendingName);
-            if (onUpdateUser) onUpdateUser({ name: pendingName });
-            Alert.alert('Nome alterado','Seu nome foi alterado com sucesso!');
-          }}>
-            <Text style={{color:'#fff',textAlign:'center'}}>Confirmar alteração</Text>
-          </TouchableOpacity>
-        </View>
-      )}
+      {/* Editing controls removed: profile is read-only for now */}
     </View>
+  </View>
   )
 }

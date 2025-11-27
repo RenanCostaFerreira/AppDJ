@@ -107,7 +107,7 @@ export default function CourseDetail({ course, onBack, favorites = [], onToggleF
                   <View style={{ padding: 8, borderWidth: 1, borderColor: '#eee', borderRadius: 6, marginTop: 8 }}>
                 <Text style={{ fontWeight: '700' }}>{item.name}</Text>
                 <Text style={{ color: '#666' }}>{item.professor ?? '-'} — {item.schedule ?? '-'}</Text>
-                <Text style={{ color: '#666', marginTop: 4 }}>Vagas: {item.vacancies ?? 0} — Matriculados: {item.students?.length ?? 0}</Text>
+                <Text style={{ color: '#666', marginTop: 4 }}>{(item.vacancies ?? 0) <= 0 ? 'Sem vagas' : `Vagas: ${item.vacancies ?? 0} — Matriculados: ${item.students?.length ?? 0}`}</Text>
                 <View style={{ flexDirection: 'row', justifyContent: 'flex-end', marginTop: 8 }}>
                   {alreadyEnrolled ? (
                     <Text style={{ color: themes.colors.primary, fontWeight: '700' }}>Já matriculado</Text>
